@@ -19,6 +19,8 @@
   --palette-aqua: #28eae4;
   --palette-teal: #0090b2;
   --palette-blue: #104991;
+  --palette-gold: #FFD700;
+
 
   /* ---- Layer 2: semantic tokens (edit these to re-theme) ---- */
 
@@ -42,13 +44,13 @@
   --keeper-kit: #2f2f38;
 
   /* Per-kid accents */
-  --accent-richie: var(--palette-purple-50);
+  --accent-richie: var(--palette-gold);
   --accent-allison: var(--palette-aqua);
 
   /* Feedback */
   --goal-flash: var(--palette-aqua);
   --save-neutral: var(--palette-cream);
-  --wrong-mark: var(--palette-purple-50);
+  --wrong-mark: var(--palette-gold);
 
   /* Calls to action */
   --cta: var(--palette-purple);

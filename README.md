@@ -159,10 +159,24 @@ rename the repo, change that value to match.
 
 ## Put it on the tablets' home screens
 
-- **iPad (Safari):** open the site, tap Share, then "Add to Home Screen".
-- **Android (Chrome):** open the site, tap ⋮, then "Add to Home screen".
+Do this rather than leaving a browser tab open — the app gets its own icon and
+opens full-screen with no address bar, so there's no tab to lose and nowhere to
+wander off to.
 
-It then opens full-screen like an app.
+- **Android (Chrome):** open the site, tap ⋮ → "Add to Home screen" (it may say
+  "Install app"). `manifest.webmanifest` makes it launch standalone.
+- **iPad (Safari):** open the site, tap Share → "Add to Home Screen".
+
+Progress lives in the browser's storage for that site, so the home-screen icon
+and the browser share the same saved data on Android. On iPad, Safari is the
+only browser that can install to the home screen, so use Safari there.
+
+**To keep them in the app:** Android has Screen Pinning
+(Settings → Security → App pinning) and iPad has Guided Access
+(Settings → Accessibility → Guided Access, then triple-click the side button).
+Either one locks the tablet to this app until you unlock it.
+
+It needs a network connection — there's no offline caching.
 
 ## Notes
 
