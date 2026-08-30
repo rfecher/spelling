@@ -1,0 +1,75 @@
+/*
+ * THEME TOKENS — this is the only file you need to edit to restyle the whole app.
+ *
+ * Layer 1 (--palette-*) holds raw colors.
+ * Layer 2 (semantic tokens) is what every component actually uses.
+ *
+ * To apply your own club colors, change the values in Layer 2 only.
+ * See "Applying your own theme" in README.md for what each token controls.
+ */
+
+:root {
+  /* ---- Layer 1: raw palette ---- */
+  --palette-black: #010102;
+  --palette-white: #ffffff;
+  --palette-cream: #f8f6f0;
+  --palette-purple: #8e0dd1;
+  --palette-purple-50: #af51f1;
+  --palette-plum: #68248c;
+  --palette-aqua: #28eae4;
+  --palette-teal: #0090b2;
+  --palette-blue: #104991;
+
+  /* ---- Layer 2: semantic tokens (edit these to re-theme) ---- */
+
+  /* Surfaces & text */
+  --bg: var(--palette-black);
+  --surface: #0d0d10;
+  --surface-raised: #16161b;
+  --border: #2a2a32;
+  --text: var(--palette-cream);
+  --text-muted: #9a9aa5;
+
+  /* The pitch */
+  --pitch: #08080a;
+  --pitch-stripe: rgba(255, 255, 255, 0.025);
+  --pitch-lines: rgba(248, 246, 240, 0.55);
+  --net: rgba(248, 246, 240, 0.28);
+
+  /* Kits */
+  --kit-primary: #101014;
+  --kit-trim: var(--palette-cream);
+  --keeper-kit: #2f2f38;
+
+  /* Per-kid accents */
+  --accent-richie: var(--palette-purple-50);
+  --accent-allison: var(--palette-aqua);
+
+  /* Feedback */
+  --goal-flash: var(--palette-aqua);
+  --save-neutral: var(--palette-cream);
+  --wrong-mark: var(--palette-purple-50);
+
+  /* Calls to action */
+  --cta: var(--palette-purple);
+  --cta-text: var(--palette-white);
+
+  /* Typography */
+  --font-heading: "TWK Everett", "Space Grotesk", "Inter", system-ui, sans-serif;
+  --font-body: "Inter", system-ui, -apple-system, sans-serif;
+
+  /* Shape */
+  --radius: 14px;
+  --radius-lg: 22px;
+
+  /* The current kid's accent — set per route by KidContext */
+  --accent: var(--accent-richie);
+}
+
+[data-kid="richie"] {
+  --accent: var(--accent-richie);
+}
+
+[data-kid="allison"] {
+  --accent: var(--accent-allison);
+}

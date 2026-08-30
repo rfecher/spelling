@@ -1,0 +1,28 @@
+{
+  "kids": [
+    {
+      "id": "richie",
+      "name": "Richie",
+      "grade": 5,
+      "weeks": [
+        {
+          "id": "2025-W36",
+          "label": "Week 1 — Sep 1",
+          "file": "richie/2025-W36.json"
+        }
+      ]
+    },
+    {
+      "id": "allison",
+      "name": "Allison",
+      "grade": 4,
+      "weeks": [
+        {
+          "id": "2025-W36",
+          "label": "Week 1 — Sep 1",
+          "file": "allison/2025-W36.json"
+        }
+      ]
+    }
+  ]
+}
