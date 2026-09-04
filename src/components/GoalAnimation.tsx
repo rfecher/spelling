@@ -1,12 +1,62 @@
-export type GoalState = "idle" | "goal" | "save";
+import { forwardRef, type CSSProperties } from "react";
+import type { KickSetup } from "../lib/kick";
+
+export type GoalState = "idle" | "aim" | "goal" | "save";
+
+interface Props {
+  state: GoalState;
+  /** Target zone to draw while aiming and during the result. */
+  setup?: KickSetup | null;
+  /** Where the aim line was frozen, 0..1 across the goal mouth. */
+  kickX?: number | null;
+  /** Big text shown over the scene on goal/save. */
+  flash?: string;
+  /** Ball glows once a spelling streak is going. */
+  glow?: boolean;
+  onTap?: () => void;
+}
+
+// Goal mouth in the 320x170 scene: x 60..260 → 18.75%..81.25% of the width.
+const GOAL_LEFT = 18.75;
+const GOAL_WIDTH = 62.5;
+const BALL_W = 7; // % of scene width, see .ball
+const KEEPER_W = 9; // see .keeper
+
+/** Custom properties the keyframes read so the ball flies to where the kid aimed. */
+function kickVars(state: GoalState, kickX: number | null | undefined): CSSProperties {
+  if (kickX == null || (state !== "goal" && state !== "save")) return {};
+  const target = GOAL_LEFT + kickX * GOAL_WIDTH;
+  const ballDx = ((target - 50) / BALL_W) * 100;
+  const toward = ((target - 50) / KEEPER_W) * 100;
+  // On a goal the keeper guesses wrong and dives away from the ball.
+  const keeperDx = state === "goal" ? (kickX < 0.5 ? 190 : -190) : toward;
+  const keeperRot = Math.max(-65, Math.min(65, keeperDx / 3));
+  return {
+    "--ball-dx": `${ballDx.toFixed(1)}%`,
+    "--keeper-dx": `${keeperDx.toFixed(1)}%`,
+    "--keeper-rot": `${keeperRot.toFixed(1)}deg`,
+    "--marker-x": kickX.toFixed(4),
+  } as CSSProperties;
+}
 
 /**
- * The penalty scene: goal frame, keeper, ball. Pure CSS keyframes — the state
- * class on the wrapper drives which animation runs.
+ * The penalty scene: goal frame, keeper, ball, and (while aiming) the sweeping
+ * line plus target zone. Pure CSS keyframes — the state class drives which
+ * animation runs; the sweep is driven by useKickSweep writing --marker-x.
  */
-export function GoalAnimation({ state }: { state: GoalState }) {
+export const GoalAnimation = forwardRef<HTMLDivElement, Props>(function GoalAnimation(
+  { state, setup, kickX, flash, glow, onTap },
+  ref,
+) {
+  const showAim = !!setup && state !== "idle";
   return (
-    <div className={`pitch-scene ${state}`} aria-hidden="true">
+    <div
+      ref={ref}
+      className={`pitch-scene ${state}`}
+      style={kickVars(state, kickX)}
+      onPointerDown={state === "aim" ? onTap : undefined}
+      aria-hidden="true"
+    >
       <svg viewBox="0 0 320 170" className="pitch-svg">
         {/* Goal frame */}
         <rect
@@ -51,6 +101,17 @@ export function GoalAnimation({ state }: { state: GoalState }) {
         <ellipse cx="160" cy="150" rx="4" ry="2" fill="var(--pitch-lines)" />
       </svg>
 
+      {showAim && (
+        <div
+          className={`aim-zone ${setup.hard ? "hard" : ""}`}
+          style={{
+            left: `${GOAL_LEFT + setup.zoneStart * GOAL_WIDTH}%`,
+            width: `${setup.zoneWidth * GOAL_WIDTH}%`,
+          }}
+        />
+      )}
+      {showAim && <div className="aim-marker" />}
+
       {/* Keeper */}
       <div className="keeper">
         <div className="keeper-body" />
@@ -58,11 +119,13 @@ export function GoalAnimation({ state }: { state: GoalState }) {
       </div>
 
       {/* Ball */}
-      <div className="ball">
+      <div className={glow ? "ball glow" : "ball"}>
         <div className="ball-inner" />
       </div>
 
-      <div className="flash-text">{state === "goal" ? "GOAL!" : "SAVED!"}</div>
+      <div className="flash-text">
+        {flash ?? (state === "goal" ? "GOAL!" : "SAVED!")}
+      </div>
     </div>
   );
-}
+});

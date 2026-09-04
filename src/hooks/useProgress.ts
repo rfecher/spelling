@@ -5,6 +5,7 @@ import {
   awardTrophy,
   finishRound,
   recordAttempt as applyAttempt,
+  recordKick as applyKick,
 } from "../lib/progress";
 
 export function useProgress(kidId: KidId) {
@@ -36,6 +37,15 @@ export function useProgress(kidId: KidId) {
     [commit],
   );
 
+  const recordKick = useCallback(
+    (scored: boolean, hard: boolean): string[] => {
+      const result = applyKick(latest.current, scored, hard);
+      if (result.progress !== latest.current) commit(result.progress);
+      return result.newTrophies;
+    },
+    [commit],
+  );
+
   const award = useCallback(
     (id: string): string[] => {
       const result = awardTrophy(latest.current, id);
@@ -54,5 +64,5 @@ export function useProgress(kidId: KidId) {
     commit(loadProgress(kidId));
   }, [kidId, commit]);
 
-  return { progress, recordAttempt, award, completeRound, reset };
+  return { progress, recordAttempt, recordKick, award, completeRound, reset };
 }

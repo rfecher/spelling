@@ -49,6 +49,10 @@ export interface KidProgress {
     bestStreak: number;
     currentStreak: number;
     roundsPlayed: number;
+    /** Penalty kicks converted (the game stat — spelling stats live in goalsScored). */
+    kicksScored: number;
+    /** Kicks converted on the hard setting, i.e. after a misspelling. */
+    hardKicksScored: number;
   };
   words: Record<string, WordStats>;
   trophies: string[];

@@ -21,7 +21,7 @@ export function Scoreboard({ goals, saves, streak, kick, total, label }: Props) 
         <span className="score-chip">🧤 {saves}</span>
       </div>
       {streak >= 2 && (
-        <div className="streak-pill">🔥 {streak} in a row</div>
+        <div className="streak-pill">🔥 {streak} spelled right in a row</div>
       )}
     </div>
   );

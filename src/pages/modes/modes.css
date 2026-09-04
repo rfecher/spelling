@@ -65,6 +65,12 @@
 /* ---------- Pitch scene ---------- */
 
 .pitch-scene {
+  /* Defaults; GoalAnimation overrides these per kick so the ball flies where
+     the kid aimed and the keeper dives accordingly. */
+  --marker-x: 0.5;
+  --ball-dx: -420%;
+  --keeper-dx: 190%;
+  --keeper-rot: 58deg;
   position: relative;
   width: 100%;
   max-width: 460px;
@@ -170,7 +176,7 @@
     transform: translateX(-50%) translate(0, 0) scale(1);
   }
   100% {
-    transform: translateX(-50%) translate(-420%, -400%) scale(0.62) rotate(520deg);
+    transform: translateX(-50%) translate(var(--ball-dx), -400%) scale(0.62) rotate(520deg);
   }
 }
 
@@ -179,10 +185,10 @@
     transform: translateX(-50%) rotate(0deg);
   }
   60% {
-    transform: translateX(-50%) translateX(190%) rotate(58deg);
+    transform: translateX(-50%) translateX(var(--keeper-dx)) rotate(var(--keeper-rot));
   }
   100% {
-    transform: translateX(-50%) translateX(210%) rotate(70deg);
+    transform: translateX(-50%) translateX(calc(var(--keeper-dx) * 1.1)) rotate(calc(var(--keeper-rot) * 1.2));
   }
 }
 
@@ -206,10 +212,10 @@
     transform: translateX(-50%) translate(0, 0) scale(1);
   }
   45% {
-    transform: translateX(-50%) translate(-230%, -300%) scale(0.72) rotate(300deg);
+    transform: translateX(-50%) translate(var(--ball-dx), -300%) scale(0.72) rotate(300deg);
   }
   100% {
-    transform: translateX(-50%) translate(-330%, -30%) scale(0.9) rotate(430deg);
+    transform: translateX(-50%) translate(calc(var(--ball-dx) * 0.75), -40%) scale(0.9) rotate(430deg);
   }
 }
 
@@ -218,11 +224,137 @@
     transform: translateX(-50%) rotate(0deg);
   }
   45% {
-    transform: translateX(-50%) translate(-210%, -60%) rotate(-58deg);
+    transform: translateX(-50%) translate(var(--keeper-dx), -60%) rotate(var(--keeper-rot));
   }
   100% {
-    transform: translateX(-50%) translate(-230%, -20%) rotate(-70deg);
+    transform: translateX(-50%) translate(var(--keeper-dx), -20%) rotate(var(--keeper-rot));
   }
+}
+
+/* --- Aim: target zone + sweeping line (position driven by --marker-x) --- */
+
+.pitch-scene.aim {
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.aim-zone {
+  position: absolute;
+  top: 14.1%;
+  height: 56.5%;
+  background: rgba(255, 255, 255, 0.1);
+  border: 2px dashed var(--accent);
+  border-radius: 4px;
+  box-shadow: inset 0 0 18px rgba(255, 255, 255, 0.08);
+}
+
+.aim-zone.hard {
+  border-style: solid;
+  background: rgba(255, 255, 255, 0.16);
+}
+
+.aim-marker {
+  position: absolute;
+  top: 10%;
+  height: 64%;
+  width: 3px;
+  left: calc(18.75% + var(--marker-x) * 62.5%);
+  transform: translateX(-50%);
+  background: var(--kit-trim);
+  box-shadow: 0 0 10px var(--kit-trim);
+  border-radius: 2px;
+}
+
+.aim-marker::before {
+  content: "";
+  position: absolute;
+  top: -6px;
+  left: 50%;
+  width: 0;
+  height: 0;
+  transform: translateX(-50%);
+  border-left: 7px solid transparent;
+  border-right: 7px solid transparent;
+  border-top: 8px solid var(--kit-trim);
+}
+
+/* The result states freeze the line where the kick went */
+.pitch-scene.goal .aim-marker,
+.pitch-scene.save .aim-marker {
+  opacity: 0.45;
+}
+
+.ball.glow .ball-inner {
+  box-shadow: 0 0 0 3px var(--accent), 0 0 16px var(--accent);
+  animation: ball-glow 1.1s ease-in-out infinite;
+}
+
+@keyframes ball-glow {
+  50% {
+    box-shadow: 0 0 0 4px var(--accent), 0 0 26px var(--accent);
+  }
+}
+
+/* ---------- Aim panel ---------- */
+
+.aim-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  text-align: center;
+  margin-top: 6px;
+}
+
+.verdict {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.verdict.right {
+  color: var(--goal-flash);
+}
+
+.verdict.wrong {
+  color: var(--save-neutral);
+}
+
+.verdict strong {
+  font-family: var(--font-heading);
+  font-size: 22px;
+  letter-spacing: 0.02em;
+}
+
+.coaching {
+  margin: 0;
+  font-size: 15px;
+  color: var(--text-muted);
+  max-width: 36ch;
+}
+
+.coaching.hard {
+  color: var(--text);
+}
+
+.kick-btn {
+  margin-top: 10px;
+  max-width: 420px;
+  font-size: 24px;
+  letter-spacing: 0.06em;
+  animation: kick-pulse 0.9s ease-in-out infinite;
+}
+
+@keyframes kick-pulse {
+  50% {
+    transform: scale(1.03);
+  }
+}
+
+.spelling-line {
+  margin: -10px 0 18px;
+  font-size: 16px;
+  font-weight: 600;
 }
 
 @keyframes flash-in {

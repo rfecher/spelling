@@ -12,6 +12,8 @@ export function emptyProgress(kidId: KidId): KidProgress {
       bestStreak: 0,
       currentStreak: 0,
       roundsPlayed: 0,
+      kicksScored: 0,
+      hardKicksScored: 0,
     },
     words: {},
     trophies: [],

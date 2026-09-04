@@ -10,6 +10,10 @@ interface Props {
   onPlayAgain: () => void;
   kidId: string;
   scoreNoun?: string;
+  /** Shown as a second line when the game stat (goals) differs from the learning stat. */
+  spelling?: { right: number; total: number };
+  /** Confetti. Defaults to a round with no misses. */
+  celebrate?: boolean;
 }
 
 export function RoundSummary({
@@ -21,8 +25,10 @@ export function RoundSummary({
   onPlayAgain,
   kidId,
   scoreNoun = "goals",
+  spelling,
+  celebrate,
 }: Props) {
-  const perfect = total > 0 && saves === 0;
+  const perfect = celebrate ?? (total > 0 && saves === 0);
   const unique = Array.from(new Set(trophies));
 
   return (
@@ -51,6 +57,11 @@ export function RoundSummary({
       <p className="muted summary-sub">
         {goals} {scoreNoun}, {saves} {saves === 1 ? "miss" : "misses"}
       </p>
+      {spelling && (
+        <p className="spelling-line">
+          ✏️ {spelling.right} of {spelling.total} spelled right
+        </p>
+      )}
 
       {unique.length > 0 && (
         <div className="new-trophies">

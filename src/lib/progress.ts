@@ -12,9 +12,12 @@ export const TROPHIES: Trophy[] = [
   { id: "hat-trick", name: "Hat Trick", blurb: "Three in a row in one round", icon: "🎩" },
   { id: "streak-5", name: "On Fire", blurb: "Five correct in a row", icon: "🔥" },
   { id: "streak-10", name: "Unstoppable", blurb: "Ten correct in a row", icon: "⚡" },
-  { id: "perfect-round", name: "Clean Sheet", blurb: "A perfect shootout round", icon: "🧤" },
+  { id: "perfect-round", name: "Clean Sheet", blurb: "Spell every word right in a round", icon: "🧤" },
+  { id: "golden-boot", name: "Golden Boot", blurb: "Score on all 10 kicks in one round", icon: "🥇" },
+  { id: "top-bins", name: "Top Bins", blurb: "Score from a hard kick", icon: "🎯" },
+  { id: "comeback", name: "Comeback Kid", blurb: "Spell every bonus-kick word right", icon: "💪" },
   { id: "week-mastered", name: "League Champion", blurb: "Master every word this week", icon: "🏆" },
-  { id: "century", name: "Century Club", blurb: "Score 100 career goals", icon: "💯" },
+  { id: "century", name: "Century Club", blurb: "Spell 100 words right", icon: "💯" },
 ];
 
 export const MASTERY_STREAK = 3;
@@ -90,6 +93,28 @@ export function recordAttempt(
     if (totals.currentStreak >= 10) award("streak-10");
   }
 
+  if (earned.length > 0) next.trophies = [...next.trophies, ...earned];
+  return { progress: next, newTrophies: earned };
+}
+
+/**
+ * A converted (or saved) penalty. Kicks are the game layer on top of spelling,
+ * so they never touch word stats, streaks, or mastery — only their own tallies.
+ */
+export function recordKick(
+  progress: KidProgress,
+  scored: boolean,
+  hard: boolean,
+): AttemptResult {
+  if (!scored) return { progress, newTrophies: [] };
+  const totals = {
+    ...progress.totals,
+    kicksScored: progress.totals.kicksScored + 1,
+    hardKicksScored: progress.totals.hardKicksScored + (hard ? 1 : 0),
+  };
+  const next: KidProgress = { ...progress, totals };
+  const earned: string[] = [];
+  if (hard && !next.trophies.includes("top-bins")) earned.push("top-bins");
   if (earned.length > 0) next.trophies = [...next.trophies, ...earned];
   return { progress: next, newTrophies: earned };
 }

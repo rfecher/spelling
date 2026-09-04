@@ -11,7 +11,7 @@ const MODES = [
   {
     path: "shootout",
     name: "Penalty Shootout",
-    blurb: "Hear it, spell it, score it",
+    blurb: "Spell it right, then time your kick",
     icon: "⚽",
     primary: true,
   },
@@ -68,7 +68,7 @@ export function KidHome() {
           </div>
           <div className="stat-row">
             <div className="stat">
-              <span className="stat-value">{stats.totals.goalsScored}</span>
+              <span className="stat-value">{stats.totals.kicksScored}</span>
               <span className="stat-label">Career goals</span>
             </div>
             <div className="stat">

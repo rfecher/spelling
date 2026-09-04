@@ -69,13 +69,28 @@ Add an entry to `kids` in the manifest with a new `id`, then create
 
 | Mode | What it does |
 | --- | --- |
-| **Penalty Shootout** | The test. Hear the word, type it on the custom keyboard, take the kick. Correct spelling scores; a miss is saved by the keeper, shows the correct spelling with the wrong letters marked, and the word comes back for a bonus kick at the end of the round. |
+| **Penalty Shootout** | The test. Hear the word, type it on the custom keyboard, hit SHOOT! — then take the kick (see below). A misspelling shows the correct word with the wrong letters marked, and the word comes back for a bonus kick at the end of the round. |
 | **Word Scramble** | Tap the shuffled letter tiles into the right order. |
 | **Missing Letters** | Fill the blanks from a small bank of letters (correct ones plus a few decoys). |
 | **Practice** | Low pressure warm-up. See it, hear it, then type it from memory with a hold-to-peek button. Doesn't affect streaks. |
 
 The keyboard is custom on purpose — the tablet's own keyboard offers autocorrect
 and spell-check, which would hand over the answer.
+
+### The kick
+
+After SHOOT!, a line sweeps back and forth across the goal and a target zone
+lights up. Tap **KICK!** (or the pitch) to stop the line: in the zone is a goal,
+outside it the keeper saves. Spelling sets the difficulty:
+
+- **Spelled right:** wide zone, slow line. Each consecutive correct word (the
+  streak) widens the zone and slows the line further, up to five steps. The ball
+  glows once the streak hits three.
+- **Misspelled:** the streak resets and the kick is *hard* — a tiny zone and a
+  fast line. Still scorable with perfect timing, so it stays a game, but it costs.
+
+Only the spelling result feeds mastery, accuracy, and the word weighting; kick
+goals are a separate career stat. Tunables live in `src/lib/kick.ts`.
 
 ### How words are chosen
 
@@ -92,8 +107,10 @@ Saved in the browser's local storage, per kid, on that kid's own device
 devices — clearing browser data resets it.
 
 Trophies: First Goal, Hat Trick, On Fire (5 streak), Unstoppable (10 streak),
-Clean Sheet (perfect round), League Champion (master every word in the week),
-Century Club (100 career goals).
+Clean Sheet (every word in a round spelled right), Golden Boot (score on all 10
+kicks in a round), Top Bins (score from a hard kick), Comeback Kid (spell every
+bonus-kick word right), League Champion (master every word in the week),
+Century Club (100 words spelled right).
 
 ---
 
