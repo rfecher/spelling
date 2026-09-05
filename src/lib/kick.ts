@@ -90,12 +90,20 @@ const EDGE = 0.03;
 const KEEPER_LEFT = 0.42;
 const KEEPER_RIGHT = 0.58;
 
+/**
+ * `ease` means one thing: the multiplier on the TIME WINDOW of each gate. A kid
+ * with ease 1.2 gets 20% longer to hit each target. It is deliberately NOT
+ * applied to `reach`, because the keeper is drawn at that height — moving it
+ * would put the reach line back inside his body. Width and period each take the
+ * square root so their product, the window, scales by exactly `ease`.
+ */
 export function kickSetup(
   spelledRight: boolean,
   streak: number,
   ease = 1,
   rng: () => number = Math.random,
 ): KickSetup {
+  const spread = Math.sqrt(ease);
   // streak is already incremented for this word, so the first correct word is
   // streak 1 and must map to bonus rung 0.
   const bonusLevel = spelledRight
@@ -106,18 +114,17 @@ export function kickSetup(
   const zoneWidth = clamp01(
     (hard
       ? TUNING.hardAimWidth
-      : TUNING.baseAimWidth + TUNING.aimWidthPerStreak * bonusLevel) * ease,
+      : TUNING.baseAimWidth + TUNING.aimWidthPerStreak * bonusLevel) * spread,
   );
   const roundTripMs =
     (hard
       ? TUNING.hardAimTripMs
-      : TUNING.baseAimTripMs + TUNING.aimTripPerStreakMs * bonusLevel) * ease;
+      : TUNING.baseAimTripMs + TUNING.aimTripPerStreakMs * bonusLevel) * spread;
 
-  // A bigger `ease` must LOWER the keeper (a wider good band), so it divides.
   const reach = clamp01(
-    (hard
+    hard
       ? TUNING.hardReach
-      : TUNING.baseReach - TUNING.reachPerStreak * bonusLevel) / ease,
+      : TUNING.baseReach - TUNING.reachPerStreak * bonusLevel,
   );
   const riseMs = (hard ? TUNING.hardRiseMs : TUNING.riseMs) * ease;
   const bar = 1;

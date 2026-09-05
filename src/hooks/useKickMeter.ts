@@ -38,7 +38,10 @@ export function useKickMeter(
     if (stage === "idle" || !setup) return;
 
     startRef.current = performance.now();
-    hiddenAtRef.current = 0;
+    // If the tab is already hidden as the stage opens, no visibilitychange will
+    // fire, so seed the paused-at stamp here or the clock runs while nobody is
+    // watching and the meter busts a kick that was never taken.
+    hiddenAtRef.current = document.hidden ? performance.now() : 0;
     let frame = 0;
     let busted = false;
 

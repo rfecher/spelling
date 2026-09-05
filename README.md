@@ -77,20 +77,58 @@ Add an entry to `kids` in the manifest with a new `id`, then create
 The keyboard is custom on purpose — the tablet's own keyboard offers autocorrect
 and spell-check, which would hand over the answer.
 
-### The kick
+### The kick: two gates, one shot
 
-After SHOOT!, a line sweeps back and forth across the goal and a target zone
-lights up. Tap **KICK!** (or the pitch) to stop the line: in the zone is a goal,
-outside it the keeper saves. Spelling sets the difficulty:
+After SHOOT! the kick is a two-tap timing challenge. Both gates must pass to score.
 
-- **Spelled right:** wide zone, slow line. Each consecutive correct word (the
-  streak) widens the zone and slows the line further, up to five steps. The ball
-  glows once the streak hits three.
-- **Misspelled:** the streak resets and the kick is *hard* — a tiny zone and a
-  fast line. Still scorable with perfect timing, so it stays a game, but it costs.
+1. **Aim.** A line sweeps across the goal. Tap **AIM** to stop it inside the
+   target zone. Stop it outside and the kick fires straight away as a save — a
+   shot already off target can't be rescued by power, so there's no point
+   sitting through the meter.
+2. **Power.** A meter climbs the goal's own vertical scale on the right. Tap
+   **KICK!** to stop it *above the keeper's reach and under the crossbar*.
+   Too low and he gathers it; past the bar and it sails over. Don't tap at all
+   and it busts over the bar ("you held it too long").
 
-Only the spelling result feeds mastery, accuracy, and the word weighting; kick
-goals are a separate career stat. Tunables live in `src/lib/kick.ts`.
+The meter is welded to the goal geometry: power 1.0 is exactly the crossbar, and
+the keeper is **drawn** to his reach line — so a spelling streak visibly shrinks
+him rather than moving an invisible threshold through his chest. The climb is
+one-way and never bounces, on purpose: a meter that ping-pongs lets you wait out
+a bad pass for free, which is why the old single-gate kick was too easy.
+
+**Spelling sets both gates:**
+
+| Situation | Aim window | Power window | Goal chance |
+| --- | --- | --- | --- |
+| Misspelled (hard kick) | 98ms | 118ms | 25% |
+| First correct word | 116ms | 209ms | 45% |
+| Streak of 3 | 183ms | 273ms | 70% |
+| Streak of 5+ | 261ms | 338ms | 88% |
+
+A misspelling resets the streak, so it costs the next kick too. About half of all
+hard kicks still clear exactly one gate and get a named near-miss ("Great aim —
+you just needed more boot") rather than a bare "Saved!". The ball glows once the
+streak reaches three.
+
+Only the spelling result feeds mastery, accuracy and word weighting. Kick goals
+are a separate arcade stat, and the round summary leads with words spelled right
+so the biggest number on screen is never a measure of thumb skill.
+
+### Tuning the kick
+
+Every number is in the `TUNING` block at the top of `src/lib/kick.ts`, and
+`npm test` asserts the resulting conversion curve, so a change that makes the
+hard kick too soft fails the suite:
+
+```bash
+npm test
+```
+
+To make it easier or harder **for one kid only**, set `kickEase` on them in
+`public/words/manifest.json`. It means exactly one thing: the multiplier on the
+time window of each gate. Allison ships at `1.2`, so she gets 20% longer on each
+tap (34% on a hard kick rising to 95%). Prefer this over softening the hard kick
+for everyone — the gap between the hard kick and a streak is the whole incentive.
 
 ### How words are chosen
 
@@ -107,10 +145,10 @@ Saved in the browser's local storage, per kid, on that kid's own device
 devices — clearing browser data resets it.
 
 Trophies: First Goal, Hat Trick, On Fire (5 streak), Unstoppable (10 streak),
-Clean Sheet (every word in a round spelled right), Golden Boot (score on all 10
-kicks in a round), Top Bins (score from a hard kick), Comeback Kid (spell every
-bonus-kick word right), League Champion (master every word in the week),
-Century Club (100 words spelled right).
+Clean Sheet (every word in a round spelled right), Sharpshooter (5 goals in a
+round), Golden Boot (score on every kick in a round), Top Bins (an upper 90 on a
+hard kick — the rarest), Comeback Kid (spell every bonus-kick word right),
+League Champion (master every word in the week), Century Club (100 words right).
 
 ---
 
@@ -161,6 +199,10 @@ The dev server binds to your network, so you can open it on a tablet with
 
 ```bash
 npm run build
+```
+
+```bash
+npm test
 ```
 
 ## Deploying

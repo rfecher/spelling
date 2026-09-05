@@ -79,7 +79,10 @@ export const GoalAnimation = forwardRef<HTMLDivElement, Props>(function GoalAnim
   ref,
 ) {
   const live = state !== "idle";
-  const showMeter = !!setup && (state === "power" || RESULTS.includes(state));
+  // Drawn from the aim stage onward, dimmed until it is live, so the second
+  // gate is never a surprise the first time a kid gets there.
+  const showMeter = !!setup && live;
+  const meterIdle = state === "aim";
 
   return (
     <div
@@ -132,7 +135,7 @@ export const GoalAnimation = forwardRef<HTMLDivElement, Props>(function GoalAnim
       {setup && live && <div className="aim-marker" />}
 
       {showMeter && (
-        <div className="power-meter">
+        <div className={meterIdle ? "power-meter idle" : "power-meter"}>
           <div className="power-track">
             <div className="band band-reach" />
             <div className="band band-good" />

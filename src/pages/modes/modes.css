@@ -339,6 +339,10 @@
    visible. Power 1.0 therefore lands exactly on the crossbar: the meter is a
    ruler next to the thing it measures, not an abstract bar. */
 
+.power-meter.idle {
+  opacity: 0.32;
+}
+
 .power-meter {
   position: absolute;
   left: 84.5%;
