@@ -241,4 +241,25 @@ button {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
+
+  /* `flash-in` ends at opacity 0, so the blanket clamp above lands the verdict
+     word on its own invisible final frame. Park it visible instead. */
+  .pitch-scene.goal .flash-text,
+  .pitch-scene.upper90 .flash-text,
+  .pitch-scene.soft .flash-text,
+  .pitch-scene.over .flash-text,
+  .pitch-scene.held .flash-text,
+  .pitch-scene.saved .flash-text {
+    animation: none !important;
+    opacity: 1;
+  }
+
+  /* With the flight collapsed to nothing, draw the shot's endpoint rather than
+     implying it: the ball sits where it finished and the keeper where he ended. */
+  .pitch-scene.goal .ball,
+  .pitch-scene.upper90 .ball,
+  .pitch-scene.over .ball,
+  .pitch-scene.held .ball {
+    transform: translateX(-50%) translate(var(--ball-dx), var(--ball-dy)) scale(0.62);
+  }
 }

@@ -13,8 +13,9 @@ export const TROPHIES: Trophy[] = [
   { id: "streak-5", name: "On Fire", blurb: "Five correct in a row", icon: "🔥" },
   { id: "streak-10", name: "Unstoppable", blurb: "Ten correct in a row", icon: "⚡" },
   { id: "perfect-round", name: "Clean Sheet", blurb: "Spell every word right in a round", icon: "🧤" },
-  { id: "golden-boot", name: "Golden Boot", blurb: "Score on all 10 kicks in one round", icon: "🥇" },
-  { id: "top-bins", name: "Top Bins", blurb: "Score from a hard kick", icon: "🎯" },
+  { id: "sharpshooter", name: "Sharpshooter", blurb: "Score 5 goals in one round", icon: "🎯" },
+  { id: "golden-boot", name: "Golden Boot", blurb: "Score on every kick in a round", icon: "🥇" },
+  { id: "top-bins", name: "Top Bins", blurb: "Upper 90 on a hard kick", icon: "🎪" },
   { id: "comeback", name: "Comeback Kid", blurb: "Spell every bonus-kick word right", icon: "💪" },
   { id: "week-mastered", name: "League Champion", blurb: "Master every word this week", icon: "🏆" },
   { id: "century", name: "Century Club", blurb: "Spell 100 words right", icon: "💯" },
@@ -105,18 +106,35 @@ export function recordKick(
   progress: KidProgress,
   scored: boolean,
   hard: boolean,
+  upper90: boolean,
 ): AttemptResult {
-  if (!scored) return { progress, newTrophies: [] };
+  // Attempts are counted before any early return: a conversion rate needs a
+  // denominator, and without one no amount of tuning is measurable.
   const totals = {
     ...progress.totals,
-    kicksScored: progress.totals.kicksScored + 1,
-    hardKicksScored: progress.totals.hardKicksScored + (hard ? 1 : 0),
+    kicksTaken: progress.totals.kicksTaken + 1,
+    hardKicksTaken: progress.totals.hardKicksTaken + (hard ? 1 : 0),
+    kicksScored: progress.totals.kicksScored + (scored ? 1 : 0),
+    hardKicksScored: progress.totals.hardKicksScored + (scored && hard ? 1 : 0),
   };
   const next: KidProgress = { ...progress, totals };
   const earned: string[] = [];
-  if (hard && !next.trophies.includes("top-bins")) earned.push("top-bins");
+  if (scored && hard && upper90 && !next.trophies.includes("top-bins")) {
+    earned.push("top-bins");
+  }
   if (earned.length > 0) next.trophies = [...next.trophies, ...earned];
   return { progress: next, newTrophies: earned };
+}
+
+/** Kick conversion rate, for tuning. Returns null until there is a denominator. */
+export function kickRate(
+  progress: KidProgress,
+  which: "all" | "hard" = "all",
+): number | null {
+  const { kicksTaken, kicksScored, hardKicksTaken, hardKicksScored } = progress.totals;
+  const taken = which === "hard" ? hardKicksTaken : kicksTaken;
+  const scored = which === "hard" ? hardKicksScored : kicksScored;
+  return taken === 0 ? null : Math.round((scored / taken) * 100);
 }
 
 export function awardTrophy(

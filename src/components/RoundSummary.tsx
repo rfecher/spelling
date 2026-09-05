@@ -3,21 +3,31 @@ import { trophyById } from "../lib/progress";
 
 interface Props {
   title: string;
+  /** Words spelled right / attempted. When given, this is the headline. */
+  spelledRight?: number;
+  spelledTotal?: number;
   goals: number;
   saves: number;
-  total: number;
+  /** Denominator for the goals line. Defaults to goals + saves. */
+  total?: number;
   trophies: string[];
   onPlayAgain: () => void;
   kidId: string;
   scoreNoun?: string;
-  /** Shown as a second line when the game stat (goals) differs from the learning stat. */
-  spelling?: { right: number; total: number };
   /** Confetti. Defaults to a round with no misses. */
   celebrate?: boolean;
 }
 
+/**
+ * The headline number is SPELLING wherever spelling was graded. Goals are a
+ * noisier proxy for effort now that the kick has two timing gates, and the
+ * biggest number on the screen the kid stares at longest should not be
+ * measuring thumb skill.
+ */
 export function RoundSummary({
   title,
+  spelledRight,
+  spelledTotal,
   goals,
   saves,
   total,
@@ -25,10 +35,13 @@ export function RoundSummary({
   onPlayAgain,
   kidId,
   scoreNoun = "goals",
-  spelling,
   celebrate,
 }: Props) {
-  const perfect = celebrate ?? (total > 0 && saves === 0);
+  const kicks = total ?? goals + saves;
+  const showSpelling = spelledRight != null && spelledTotal != null;
+  const headline = showSpelling ? spelledRight : goals;
+  const headlineOf = showSpelling ? spelledTotal : kicks;
+  const perfect = celebrate ?? (kicks > 0 && saves === 0);
   const unique = Array.from(new Set(trophies));
 
   return (
@@ -51,15 +64,16 @@ export function RoundSummary({
       <h1 className="display summary-title">{title}</h1>
 
       <div className="final-score">
-        <span className="final-goals">{goals}</span>
-        <span className="final-of">/ {total}</span>
+        <span className="final-goals">{headline}</span>
+        <span className="final-of">/ {headlineOf}</span>
       </div>
-      <p className="muted summary-sub">
-        {goals} {scoreNoun}, {saves} {saves === 1 ? "miss" : "misses"}
+      <p className="summary-headline-label">
+        {showSpelling ? "words spelled right" : scoreNoun}
       </p>
-      {spelling && (
-        <p className="spelling-line">
-          ✏️ {spelling.right} of {spelling.total} spelled right
+
+      {showSpelling && (
+        <p className="muted summary-sub">
+          ⚽ {goals} of {kicks} kicks scored
         </p>
       )}
 
@@ -82,12 +96,8 @@ export function RoundSummary({
       )}
 
       <div className="summary-actions">
-        <button className="btn btn-lg" onClick={onPlayAgain}>
-          Play again
-        </button>
-        <Link className="btn btn-lg btn-ghost" to={`/kid/${kidId}`}>
-          Back to menu
-        </Link>
+        <button className="btn btn-lg" onClick={onPlayAgain}>Play again</button>
+        <Link className="btn btn-lg btn-ghost" to={`/kid/${kidId}`}>Back to menu</Link>
       </div>
     </main>
   );

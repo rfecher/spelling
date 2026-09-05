@@ -66,12 +66,21 @@
 
 .pitch-scene {
   /* Defaults; GoalAnimation overrides these per kick so the ball flies where
-     the kid aimed and the keeper dives accordingly. */
+     the kid aimed and at the height the meter was stopped at. */
   --marker-x: 0.5;
-  --ball-dx: -420%;
-  --keeper-dx: 190%;
-  --keeper-rot: 58deg;
+  --power: 0;
+  --ball-dx: 0%;
+  --ball-dy: -400%;
+  --flight-ms: 900ms;
+  --keeper-dx: 0%;
+  --keeper-rot: 0deg;
+  --keeper-h: 0.62;
+  --reach-f: 62%;
+  --sweet-f: 82%;
+  --bar-f: 89.3%;
   position: relative;
+  cursor: pointer;
+  touch-action: manipulation;
   width: 100%;
   max-width: 460px;
   margin: 0 auto;
@@ -98,11 +107,13 @@
 .keeper {
   position: absolute;
   left: 50%;
-  bottom: 29%;
+  bottom: 29.4%;
   width: 9%;
-  height: 34%;
+  /* The goal mouth is 56.5% of the scene tall, so this puts his head exactly on
+     the reach line. A spelling streak shrinks him on screen. */
+  height: calc(var(--keeper-h) * 56.5%);
   transform: translateX(-50%);
-  transition: none;
+  z-index: 2;
 }
 
 .keeper-body {
@@ -156,87 +167,115 @@
   pointer-events: none;
 }
 
-/* --- Goal: keeper dives the wrong way, ball into the top corner --- */
+/* --- Outcomes. One animation per KickOutcome; the ball flies to the aimed x
+       at the height the power meter was stopped at. --- */
 
-.pitch-scene.goal .ball {
-  animation: ball-goal 900ms cubic-bezier(0.3, 0.7, 0.4, 1) forwards;
+.pitch-scene .ball { z-index: 3; }
+
+.pitch-scene.goal .ball,
+.pitch-scene.upper90 .ball {
+  animation: ball-fly var(--flight-ms) cubic-bezier(0.3, 0.7, 0.4, 1) forwards;
 }
 
-.pitch-scene.goal .keeper {
-  animation: keeper-wrong-way 900ms ease-out forwards;
+.pitch-scene.over .ball,
+.pitch-scene.held .ball {
+  animation: ball-over var(--flight-ms) ease-out forwards;
 }
 
-.pitch-scene.goal .flash-text {
-  color: var(--goal-flash);
-  animation: flash-in 1100ms ease-out 500ms forwards;
+.pitch-scene.soft .ball {
+  animation: ball-soft 760ms ease-out forwards;
 }
 
-@keyframes ball-goal {
-  0% {
-    transform: translateX(-50%) translate(0, 0) scale(1);
+.pitch-scene.saved .ball {
+  animation: ball-saved 950ms ease-out forwards;
+}
+
+/* Beaten the wrong way on a goal; at the ball on a save or a weak roller; and
+   deliberately motionless when it has gone over his bar — a 10-year-old reads
+   "he didn't even move" instantly. */
+.pitch-scene.goal .keeper,
+.pitch-scene.upper90 .keeper {
+  animation: keeper-wrong-way var(--flight-ms) ease-out forwards;
+}
+
+.pitch-scene.saved .keeper,
+.pitch-scene.soft .keeper {
+  animation: keeper-save 900ms ease-out forwards;
+}
+
+.pitch-scene.goal .flash-text,
+.pitch-scene.upper90 .flash-text,
+.pitch-scene.soft .flash-text,
+.pitch-scene.over .flash-text,
+.pitch-scene.held .flash-text,
+.pitch-scene.saved .flash-text {
+  animation: flash-in 1100ms ease-out 420ms forwards;
+}
+
+.pitch-scene.goal .flash-text { color: var(--goal-flash); }
+.pitch-scene.upper90 .flash-text { color: var(--accent); }
+.pitch-scene.soft .flash-text,
+.pitch-scene.over .flash-text,
+.pitch-scene.held .flash-text,
+.pitch-scene.saved .flash-text { color: var(--save-neutral); }
+
+@keyframes ball-fly {
+  0% { transform: translateX(-50%) translate(0, 0) scale(1); }
+  100% {
+    transform: translateX(-50%) translate(var(--ball-dx), var(--ball-dy))
+      scale(0.62) rotate(520deg);
+  }
+}
+
+@keyframes ball-over {
+  0% { transform: translateX(-50%) translate(0, 0) scale(1); }
+  100% {
+    transform: translateX(-50%) translate(var(--ball-dx), var(--ball-dy))
+      scale(0.5) rotate(700deg);
+  }
+}
+
+/* A weak roller: low, slow, and the keeper gets across to gather it. */
+@keyframes ball-soft {
+  0% { transform: translateX(-50%) translate(0, 0) scale(1); }
+  55% {
+    transform: translateX(-50%) translate(calc(var(--ball-dx) * 0.6), -110%)
+      scale(0.88) rotate(220deg);
   }
   100% {
-    transform: translateX(-50%) translate(var(--ball-dx), -400%) scale(0.62) rotate(520deg);
+    transform: translateX(-50%) translate(calc(var(--ball-dx) * 0.72), -70%)
+      scale(0.84) rotate(300deg);
+  }
+}
+
+@keyframes ball-saved {
+  0% { transform: translateX(-50%) translate(0, 0) scale(1); }
+  45% {
+    transform: translateX(-50%) translate(var(--ball-dx), calc(var(--ball-dy) * 0.75))
+      scale(0.72) rotate(300deg);
+  }
+  100% {
+    transform: translateX(-50%) translate(calc(var(--ball-dx) * 0.55), -40%)
+      scale(0.9) rotate(430deg);
   }
 }
 
 @keyframes keeper-wrong-way {
-  0% {
-    transform: translateX(-50%) rotate(0deg);
-  }
-  60% {
-    transform: translateX(-50%) translateX(var(--keeper-dx)) rotate(var(--keeper-rot));
-  }
+  0% { transform: translateX(-50%) rotate(0deg); }
+  60% { transform: translateX(-50%) translateX(var(--keeper-dx)) rotate(var(--keeper-rot)); }
   100% {
-    transform: translateX(-50%) translateX(calc(var(--keeper-dx) * 1.1)) rotate(calc(var(--keeper-rot) * 1.2));
-  }
-}
-
-/* --- Save: keeper reaches the ball, ball rebounds --- */
-
-.pitch-scene.save .ball {
-  animation: ball-saved 950ms ease-out forwards;
-}
-
-.pitch-scene.save .keeper {
-  animation: keeper-save 950ms ease-out forwards;
-}
-
-.pitch-scene.save .flash-text {
-  color: var(--save-neutral);
-  animation: flash-in 1100ms ease-out 450ms forwards;
-}
-
-@keyframes ball-saved {
-  0% {
-    transform: translateX(-50%) translate(0, 0) scale(1);
-  }
-  45% {
-    transform: translateX(-50%) translate(var(--ball-dx), -300%) scale(0.72) rotate(300deg);
-  }
-  100% {
-    transform: translateX(-50%) translate(calc(var(--ball-dx) * 0.75), -40%) scale(0.9) rotate(430deg);
+    transform: translateX(-50%) translateX(calc(var(--keeper-dx) * 1.1))
+      rotate(calc(var(--keeper-rot) * 1.2));
   }
 }
 
 @keyframes keeper-save {
-  0% {
-    transform: translateX(-50%) rotate(0deg);
-  }
-  45% {
-    transform: translateX(-50%) translate(var(--keeper-dx), -60%) rotate(var(--keeper-rot));
-  }
-  100% {
-    transform: translateX(-50%) translate(var(--keeper-dx), -20%) rotate(var(--keeper-rot));
-  }
+  0% { transform: translateX(-50%) rotate(0deg); }
+  45% { transform: translateX(-50%) translate(var(--keeper-dx), -50%) rotate(var(--keeper-rot)); }
+  100% { transform: translateX(-50%) translate(var(--keeper-dx), -15%) rotate(var(--keeper-rot)); }
 }
 
-/* --- Aim: target zone + sweeping line (position driven by --marker-x) --- */
-
-.pitch-scene.aim {
-  cursor: pointer;
-  touch-action: manipulation;
-}
+/* --- Gate 1: aim zone and sweeping line --- */
 
 .aim-zone {
   position: absolute;
@@ -245,7 +284,7 @@
   background: rgba(255, 255, 255, 0.1);
   border: 2px dashed var(--accent);
   border-radius: 4px;
-  box-shadow: inset 0 0 18px rgba(255, 255, 255, 0.08);
+  z-index: 1;
 }
 
 .aim-zone.hard {
@@ -263,25 +302,130 @@
   background: var(--kit-trim);
   box-shadow: 0 0 10px var(--kit-trim);
   border-radius: 2px;
+  /* Above the net and keeper but below the flash word: the frozen line beside
+     the zone is the whole "see why it missed" picture. */
+  z-index: 4;
 }
 
+/* Small enough not to overhang the tolerance it points at — a 14px chevron over
+   a 40px hard zone would show the arrow outside the zone on a scored goal. */
 .aim-marker::before {
   content: "";
   position: absolute;
-  top: -6px;
+  top: -5px;
   left: 50%;
   width: 0;
   height: 0;
   transform: translateX(-50%);
-  border-left: 7px solid transparent;
-  border-right: 7px solid transparent;
-  border-top: 8px solid var(--kit-trim);
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-top: 6px solid var(--kit-trim);
 }
 
-/* The result states freeze the line where the kick went */
+.pitch-scene.power .aim-marker,
 .pitch-scene.goal .aim-marker,
-.pitch-scene.save .aim-marker {
-  opacity: 0.45;
+.pitch-scene.upper90 .aim-marker,
+.pitch-scene.soft .aim-marker,
+.pitch-scene.over .aim-marker,
+.pitch-scene.held .aim-marker,
+.pitch-scene.saved .aim-marker {
+  opacity: 0.75;
+  box-shadow: 0 0 14px var(--kit-trim);
+}
+
+/* --- Gate 2: the power meter ---
+   It stands in the dead strip right of the goal and shares the mouth's vertical
+   scale, extended to the CEILING (1.12) so the bust slab above the bar is
+   visible. Power 1.0 therefore lands exactly on the crossbar: the meter is a
+   ruler next to the thing it measures, not an abstract bar. */
+
+.power-meter {
+  position: absolute;
+  left: 84.5%;
+  width: 8.5%;
+  top: 7.32%;
+  height: 63.28%;
+  z-index: 4;
+}
+
+.power-track {
+  position: absolute;
+  inset: 0;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  overflow: hidden;
+  background: var(--surface);
+}
+
+.band {
+  position: absolute;
+  left: 0;
+  right: 0;
+}
+
+/* Bands are separated by POSITION and PATTERN as well as colour, so they still
+   read for a colourblind kid. */
+.band-reach {
+  bottom: 0;
+  height: var(--reach-f);
+  background: repeating-linear-gradient(
+    45deg,
+    rgba(248, 246, 240, 0.16) 0 3px,
+    transparent 3px 6px
+  );
+}
+
+.band-good {
+  bottom: var(--reach-f);
+  height: calc(var(--sweet-f) - var(--reach-f));
+  background: color-mix(in srgb, var(--goal-flash) 34%, transparent);
+}
+
+.band-sweet {
+  bottom: var(--sweet-f);
+  height: calc(var(--bar-f) - var(--sweet-f));
+  background: color-mix(in srgb, var(--accent) 55%, transparent);
+}
+
+.band-bust {
+  bottom: var(--bar-f);
+  top: 0;
+  background: repeating-linear-gradient(
+    -45deg,
+    color-mix(in srgb, var(--palette-plum) 70%, transparent) 0 4px,
+    transparent 4px 8px
+  );
+}
+
+.bar-tick {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: var(--bar-f);
+  height: 2px;
+  background: var(--kit-trim);
+}
+
+.power-fill {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: calc(var(--power) * 100% / 1.12);
+  background: rgba(248, 246, 240, 0.22);
+  border-top: 3px solid var(--kit-trim);
+  box-shadow: 0 -2px 10px rgba(248, 246, 240, 0.5);
+}
+
+.power-cap {
+  position: absolute;
+  top: -14px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
 }
 
 .ball.glow .ball-inner {
@@ -290,12 +434,17 @@
 }
 
 @keyframes ball-glow {
-  50% {
-    box-shadow: 0 0 0 4px var(--accent), 0 0 26px var(--accent);
-  }
+  50% { box-shadow: 0 0 0 4px var(--accent), 0 0 26px var(--accent); }
 }
 
-/* ---------- Aim panel ---------- */
+@keyframes flash-in {
+  0% { opacity: 0; transform: scale(0.7); }
+  25% { opacity: 1; transform: scale(1.08); }
+  75% { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: scale(1); }
+}
+
+/* ---------- Kick panel ---------- */
 
 .aim-panel {
   display: flex;
@@ -306,20 +455,9 @@
   margin-top: 6px;
 }
 
-.verdict {
-  margin: 0;
-  font-size: 18px;
-  font-weight: 700;
-}
-
-.verdict.right {
-  color: var(--goal-flash);
-}
-
-.verdict.wrong {
-  color: var(--save-neutral);
-}
-
+.verdict { margin: 0; font-size: 18px; font-weight: 700; }
+.verdict.right { color: var(--goal-flash); }
+.verdict.wrong { color: var(--save-neutral); }
 .verdict strong {
   font-family: var(--font-heading);
   font-size: 22px;
@@ -333,47 +471,47 @@
   max-width: 36ch;
 }
 
-.coaching.hard {
-  color: var(--text);
-}
+.coaching.hard { color: var(--text); }
 
 .kick-btn {
   margin-top: 10px;
   max-width: 420px;
   font-size: 24px;
   letter-spacing: 0.06em;
-  animation: kick-pulse 0.9s ease-in-out infinite;
 }
+
+/* Only the aim button pulses. During the power stage the rising meter is the
+   timer, and a pulsing button would compete with it for the eye. */
+.kick-btn.aim { animation: kick-pulse 0.9s ease-in-out infinite; }
 
 @keyframes kick-pulse {
-  50% {
-    transform: scale(1.03);
-  }
+  50% { transform: scale(1.03); }
 }
 
-.spelling-line {
-  margin: -10px 0 18px;
-  font-size: 16px;
+.cause-line { margin: 2px 0 0; font-size: 15px; }
+
+.kick-subline {
+  margin: 10px 0 0;
+  font-size: 15px;
+  color: var(--text-muted);
+}
+
+.kick-subline.goal { color: var(--goal-flash); }
+
+.streak-preview {
+  margin: 14px 0 0;
+  font-size: 14px;
   font-weight: 600;
+  color: var(--accent);
+  max-width: 34ch;
 }
 
-@keyframes flash-in {
-  0% {
-    opacity: 0;
-    transform: scale(0.7);
-  }
-  25% {
-    opacity: 1;
-    transform: scale(1.08);
-  }
-  75% {
-    opacity: 1;
-    transform: scale(1);
-  }
-  100% {
-    opacity: 0;
-    transform: scale(1);
-  }
+.summary-headline-label {
+  margin: 2px 0 0;
+  font-size: 14px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
 }
 
 /* ---------- Prompt + answer ---------- */

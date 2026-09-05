@@ -7,10 +7,11 @@
       "weeks": [
         {
           "id": "2025-W36",
-          "label": "Week 1 — Sep 1",
+          "label": "Week 1 \u2014 Sep 1",
           "file": "richie/2025-W36.json"
         }
-      ]
+      ],
+      "kickEase": 1.0
     },
     {
       "id": "allison",
@@ -19,10 +20,11 @@
       "weeks": [
         {
           "id": "2025-W36",
-          "label": "Week 1 — Sep 1",
+          "label": "Week 1 \u2014 Sep 1",
           "file": "allison/2025-W36.json"
         }
-      ]
+      ],
+      "kickEase": 1.2
     }
   ]
 }

@@ -68,8 +68,8 @@ export function KidHome() {
           </div>
           <div className="stat-row">
             <div className="stat">
-              <span className="stat-value">{stats.totals.kicksScored}</span>
-              <span className="stat-label">Career goals</span>
+              <span className="stat-value">{stats.totals.goalsScored}</span>
+              <span className="stat-label">Words right</span>
             </div>
             <div className="stat">
               <span className="stat-value">{stats.totals.bestStreak}</span>
@@ -78,6 +78,10 @@ export function KidHome() {
             <div className="stat">
               <span className="stat-value">{accuracy(stats)}%</span>
               <span className="stat-label">Accuracy</span>
+            </div>
+            <div className="stat">
+              <span className="stat-value">{stats.totals.kicksScored}</span>
+              <span className="stat-label">Goals</span>
             </div>
           </div>
         </section>

@@ -38,8 +38,8 @@ export function useProgress(kidId: KidId) {
   );
 
   const recordKick = useCallback(
-    (scored: boolean, hard: boolean): string[] => {
-      const result = applyKick(latest.current, scored, hard);
+    (scored: boolean, hard: boolean, upper90: boolean): string[] => {
+      const result = applyKick(latest.current, scored, hard, upper90);
       if (result.progress !== latest.current) commit(result.progress);
       return result.newTrophies;
     },

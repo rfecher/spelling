@@ -1,50 +1,75 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useKid } from "../../context/KidContext";
 import { useWordList } from "../../hooks/useWordList";
 import { useTTS } from "../../hooks/useTTS";
-import { useKickSweep } from "../../hooks/useKickSweep";
+import { useKickMeter } from "../../hooks/useKickMeter";
 import { VantorHeader } from "../../components/VantorHeader";
 import { TTSButton } from "../../components/TTSButton";
 import { OnScreenKeyboard } from "../../components/OnScreenKeyboard";
-import { GoalAnimation } from "../../components/GoalAnimation";
+import { GoalAnimation, type SceneState } from "../../components/GoalAnimation";
 import { Scoreboard } from "../../components/Scoreboard";
 import { RoundSummary } from "../../components/RoundSummary";
 import { pickWords } from "../../lib/weighting";
 import { isCorrect, weekMastered } from "../../lib/progress";
-import { flashLine, inZone, kickSetup, type KickSetup } from "../../lib/kick";
+import {
+  flashLine,
+  inZone,
+  kickCopy,
+  kickSetup,
+  resolveKick,
+  type KickOutcome,
+  type KickSetup,
+} from "../../lib/kick";
 import type { WordEntry } from "../../types";
 import "./modes.css";
 
 const ROUND_SIZE = 10;
 const GLOW_STREAK = 3;
+/**
+ * Reduced motion slows both gates. That also makes them slightly more
+ * forgiving, which is the right trade: the setting is a signal that fast
+ * moving targets are a barrier, not that the kid wants a harder game.
+ */
+const CALM_EASE = 1.25;
+/** Swallows the double-tap that would otherwise fire the power stage at ~0. */
+const TAP_LOCK_MS = 110;
 
 /**
- * kickoff → typing → aim → result, per word. Spelling is graded at SHOOT!;
- * the aim phase is the game layer where that grade sets the kick difficulty.
+ * Per word: kickoff → typing → aim → power → result. Spelling is graded at
+ * SHOOT!; the two timing gates that follow are the game layer whose difficulty
+ * that grade sets.
  */
-type Phase = "kickoff" | "typing" | "aim" | "result" | "summary";
+type Phase = "kickoff" | "typing" | "aim" | "power" | "result" | "summary";
+
+interface Resolved {
+  outcome: KickOutcome;
+  scored: boolean;
+  aimOk: boolean;
+}
 
 export function Shootout() {
   const { kid, week, progress } = useKid();
   const { list, loading, error } = useWordList(week);
   const tts = useTTS();
+  const ease = kid.kickEase ?? 1;
 
   const [queue, setQueue] = useState<WordEntry[]>([]);
   const [index, setIndex] = useState(0);
   const [typed, setTyped] = useState("");
   const [phase, setPhase] = useState<Phase>("kickoff");
 
-  // Spelling (the learning stat)
+  // Spelling — the learning stat.
   const [spelledRight, setSpelledRight] = useState(false);
   const [spelled, setSpelled] = useState(0);
   const [misspelled, setMisspelled] = useState(0);
   const [streak, setStreak] = useState(0);
 
-  // Kicks (the game stat)
+  // Kick — the arcade stat.
   const [setup, setSetup] = useState<KickSetup | null>(null);
   const [kickX, setKickX] = useState<number | null>(null);
-  const [scored, setScored] = useState(false);
-  const [flash, setFlash] = useState("GOAL!");
+  const [kickPower, setKickPower] = useState<number | null>(null);
+  const [resolved, setResolved] = useState<Resolved | null>(null);
+  const [flash, setFlash] = useState("");
   const [goals, setGoals] = useState(0);
   const [saves, setSaves] = useState(0);
 
@@ -53,7 +78,19 @@ export function Shootout() {
   const [retryMisses, setRetryMisses] = useState(0);
   const [earnedTrophies, setEarnedTrophies] = useState<string[]>([]);
 
-  const sweep = useKickSweep(phase === "aim", setup?.roundTripMs ?? 2800);
+  // The phase STATE cannot gate re-entry: React batches, so two pointer events
+  // in the same tick both read the old value. These refs are the real lock.
+  const stageRef = useRef<Phase>("kickoff");
+  const tapLockUntil = useRef(0);
+
+  const goPhase = useCallback((next: Phase) => {
+    stageRef.current = next;
+    setPhase(next);
+  }, []);
+
+  const addTrophies = useCallback((ids: string[]) => {
+    if (ids.length > 0) setEarnedTrophies((prev) => [...prev, ...ids]);
+  }, []);
 
   const startRound = useCallback(() => {
     if (!list) return;
@@ -65,17 +102,19 @@ export function Shootout() {
     setStreak(0);
     setSetup(null);
     setKickX(null);
+    setKickPower(null);
+    setResolved(null);
     setGoals(0);
     setSaves(0);
     setRetryQueue([]);
     setInRetries(false);
     setRetryMisses(0);
     setEarnedTrophies([]);
-    setPhase("kickoff");
+    goPhase("kickoff");
     // progress is read once at round start on purpose: weighting shouldn't
     // shuffle mid-round as the kid answers.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [list]);
+  }, [list, goPhase]);
 
   useEffect(() => {
     startRound();
@@ -84,17 +123,47 @@ export function Shootout() {
   const current = queue[index];
   const totalKicks = queue.length;
 
-  const addTrophies = useCallback((ids: string[]) => {
-    if (ids.length > 0) setEarnedTrophies((prev) => [...prev, ...ids]);
-  }, []);
+  /**
+   * The one place a kick can end. Sole caller of recordKick, the scoreline, the
+   * haptics and the move to `result`, so no auto-fire or shortcut can ever
+   * double-record.
+   */
+  const finishKick = useCallback(
+    (aimX: number, power: number, held: boolean) => {
+      if (!setup || stageRef.current === "result") return;
+      stageRef.current = "result";
+
+      const r = resolveKick(aimX, power, setup, held);
+      setKickX(aimX);
+      setKickPower(power);
+      setResolved({ outcome: r.outcome, scored: r.scored, aimOk: r.aimOk });
+      setFlash(flashLine(r.outcome));
+      if (r.scored) setGoals((g) => g + 1);
+      else setSaves((s) => s + 1);
+      addTrophies(progress.recordKick(r.scored, setup.hard, r.outcome === "upper90"));
+      // Android tablets buzz; iPad ignores this, so no outcome may live only here.
+      navigator.vibrate?.(r.scored ? [30, 40, 60] : 90);
+      setPhase("result");
+    },
+    [setup, progress, addTrophies],
+  );
+
+  const onBust = useCallback(() => {
+    if (!setup || kickX == null) return;
+    finishKick(kickX, 1.12, true);
+  }, [setup, kickX, finishKick]);
+
+  const meterStage =
+    phase === "aim" ? "aim" : phase === "power" ? "power" : "idle";
+  const meter = useKickMeter(meterStage, setup, onBust);
 
   const hearWord = useCallback(async () => {
     if (!current) return;
-    if (phase === "kickoff") setPhase("typing");
+    if (phase === "kickoff") goPhase("typing");
     await tts.sayWord(current);
-  }, [current, phase, tts]);
+  }, [current, phase, tts, goPhase]);
 
-  /** SHOOT! — grade the spelling and set up the kick it earned. */
+  /** SHOOT! — grade the spelling, then set up the kick it earned. */
   const submit = useCallback(() => {
     if (!current || typed.length === 0) return;
     tts.stop();
@@ -108,31 +177,50 @@ export function Shootout() {
       setSpelled((n) => n + 1);
     } else {
       setMisspelled((n) => n + 1);
-      // Missed words get one more kick at the end of the round.
       if (inRetries) setRetryMisses((n) => n + 1);
       else setRetryQueue((r) => [...r, current]);
     }
 
-    setSetup(kickSetup(correct, nextStreak));
+    // Read once per kick rather than subscribing: an OS toggle then applies
+    // from the next word, with no listener and no stale closure.
+    const calm = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches
+      ? CALM_EASE
+      : 1;
+    setSetup(kickSetup(correct, nextStreak, ease * calm));
     setKickX(null);
-    setPhase("aim");
-  }, [current, typed, streak, progress, tts, inRetries, addTrophies]);
+    setKickPower(null);
+    setResolved(null);
+    setFlash("");
+    tapLockUntil.current = performance.now() + TAP_LOCK_MS;
+    goPhase("aim");
+  }, [current, typed, streak, progress, tts, inRetries, addTrophies, ease, goPhase]);
 
-  /** KICK! — freeze the line and see if it's in the zone. */
-  const kick = useCallback(() => {
-    if (phase !== "aim" || !setup) return;
-    const x = sweep.read();
-    const goal = inZone(x, setup);
-    setKickX(x);
-    setScored(goal);
-    setFlash(flashLine(goal));
-    if (goal) setGoals((g) => g + 1);
-    else setSaves((s) => s + 1);
-    addTrophies(progress.recordKick(goal, setup.hard));
-    // Android tablets buzz; iPad ignores this.
-    navigator.vibrate?.(goal ? [30, 40, 60] : 90);
-    setPhase("result");
-  }, [phase, setup, sweep, progress, addTrophies]);
+  /** One handler for both taps — which gate it closes depends on the stage. */
+  const tap = useCallback(() => {
+    const now = performance.now();
+    if (now < tapLockUntil.current) return;
+
+    if (stageRef.current === "aim") {
+      if (!setup) return;
+      const x = meter.readAim();
+      setKickX(x);
+      meter.setVar("--marker-x", x.toFixed(4));
+      // A shot already off target cannot be rescued by power, so fire now
+      // rather than making the kid sit through a meter that cannot help.
+      if (!inZone(x, setup)) {
+        finishKick(x, (setup.reach + setup.bar) / 2, false);
+        return;
+      }
+      tapLockUntil.current = now + TAP_LOCK_MS;
+      goPhase("power");
+      return;
+    }
+
+    if (stageRef.current === "power") {
+      if (kickX == null) return;
+      finishKick(kickX, meter.readPower(), false);
+    }
+  }, [setup, meter, kickX, finishKick, goPhase]);
 
   const next = useCallback(() => {
     setTyped("");
@@ -140,12 +228,15 @@ export function Shootout() {
 
     if (!atEnd) {
       setIndex((i) => i + 1);
-      setPhase("kickoff");
+      goPhase("kickoff");
       return;
     }
 
-    if (!inRetries && goals === queue.length && queue.length >= 5) {
-      addTrophies(progress.award("golden-boot"));
+    if (!inRetries) {
+      if (goals >= 5) addTrophies(progress.award("sharpshooter"));
+      if (goals === queue.length && queue.length >= 5) {
+        addTrophies(progress.award("golden-boot"));
+      }
     }
 
     if (retryQueue.length > 0 && !inRetries) {
@@ -154,7 +245,7 @@ export function Shootout() {
       setInRetries(true);
       setRetryMisses(0);
       setIndex(0);
-      setPhase("kickoff");
+      goPhase("kickoff");
       return;
     }
 
@@ -164,28 +255,17 @@ export function Shootout() {
     if (list && weekMastered(progress.progress, list.words)) {
       addTrophies(progress.award("week-mastered"));
     }
-    setPhase("summary");
+    goPhase("summary");
   }, [
-    index,
-    queue.length,
-    retryQueue,
-    inRetries,
-    retryMisses,
-    progress,
-    goals,
-    spelled,
-    misspelled,
-    list,
-    addTrophies,
+    index, queue.length, retryQueue, inRetries, retryMisses,
+    progress, goals, spelled, misspelled, list, addTrophies, goPhase,
   ]);
 
   if (loading) {
     return (
       <>
         <VantorHeader backTo={`/kid/${kid.id}`} kidName={kid.name} />
-        <main className="page">
-          <p className="muted">Loading this week's words…</p>
-        </main>
+        <main className="page"><p className="muted">Loading this week's words…</p></main>
       </>
     );
   }
@@ -194,9 +274,7 @@ export function Shootout() {
     return (
       <>
         <VantorHeader backTo={`/kid/${kid.id}`} kidName={kid.name} />
-        <main className="page">
-          <p className="error-text">{error ?? "No words available."}</p>
-        </main>
+        <main className="page"><p className="error-text">{error ?? "No words available."}</p></main>
       </>
     );
   }
@@ -205,9 +283,7 @@ export function Shootout() {
     return (
       <>
         <VantorHeader backTo={`/kid/${kid.id}`} kidName={kid.name} />
-        <main className="page">
-          <p className="muted">Setting up the shootout…</p>
-        </main>
+        <main className="page"><p className="muted">Setting up the shootout…</p></main>
       </>
     );
   }
@@ -218,10 +294,10 @@ export function Shootout() {
         <VantorHeader backTo={`/kid/${kid.id}`} kidName={kid.name} />
         <RoundSummary
           title={misspelled === 0 ? "Clean sheet!" : "Full time"}
+          spelledRight={spelled}
+          spelledTotal={spelled + misspelled}
           goals={goals}
           saves={saves}
-          total={goals + saves}
-          spelling={{ right: spelled, total: spelled + misspelled }}
           celebrate={misspelled === 0}
           trophies={earnedTrophies}
           onPlayAgain={startRound}
@@ -231,8 +307,11 @@ export function Shootout() {
     );
   }
 
-  const sceneState =
-    phase === "aim" ? "aim" : phase === "result" ? (scored ? "goal" : "save") : "idle";
+  const sceneState: SceneState =
+    phase === "aim" ? "aim"
+    : phase === "power" ? "power"
+    : phase === "result" && resolved ? resolved.outcome
+    : "idle";
 
   return (
     <>
@@ -248,29 +327,31 @@ export function Shootout() {
         />
 
         <GoalAnimation
-          ref={sweep.sceneRef}
+          ref={meter.sceneRef}
           state={sceneState}
           setup={setup}
           kickX={kickX}
+          kickPower={kickPower}
           flash={flash}
           glow={streak >= GLOW_STREAK && phase !== "result"}
-          onTap={kick}
+          onTap={tap}
         />
 
-        {phase === "aim" && setup && (
-          <AimPanel
+        {(phase === "aim" || phase === "power") && setup && (
+          <KickPanel
+            stage={phase}
             spelledRight={spelledRight}
             word={current.word}
             setup={setup}
-            onKick={kick}
+            onTap={tap}
           />
         )}
 
-        {phase === "result" && (
+        {phase === "result" && resolved && (
           <ResultPanel
-            scored={scored}
+            resolved={resolved}
             spelledRight={spelledRight}
-            hard={setup?.hard ?? false}
+            streak={streak}
             typed={typed}
             word={current.word}
             hint={current.hint}
@@ -295,10 +376,7 @@ export function Shootout() {
                 </p>
               )}
               {current.sentence && phase !== "kickoff" && (
-                <button
-                  className="link-btn"
-                  onClick={() => tts.say(current.sentence!)}
-                >
+                <button className="link-btn" onClick={() => tts.say(current.sentence!)}>
                   Hear it in a sentence
                 </button>
               )}
@@ -309,9 +387,7 @@ export function Shootout() {
                 <span className="answer-placeholder">Spell the word</span>
               ) : (
                 typed.split("").map((letter, i) => (
-                  <span key={i} className="answer-letter">
-                    {letter}
-                  </span>
+                  <span key={i} className="answer-letter">{letter}</span>
                 ))
               )}
             </div>
@@ -330,55 +406,57 @@ export function Shootout() {
   );
 }
 
-interface AimProps {
+interface KickPanelProps {
+  stage: "aim" | "power";
   spelledRight: boolean;
   word: string;
   setup: KickSetup;
-  onKick: () => void;
+  onTap: () => void;
 }
 
-function AimPanel({ spelledRight, word, setup, onKick }: AimProps) {
-  let coaching: string;
-  if (setup.hard) {
-    coaching = "Hard kick: tiny target, quick keeper. Time it perfectly!";
-  } else if (setup.bonusLevel > 0) {
-    coaching = `Streak bonus ×${setup.bonusLevel}: bigger target, slower keeper!`;
-  } else {
-    coaching = "Easy kick: tap when the line is in the zone.";
-  }
+/**
+ * One panel across both gates, and one button that never remounts — remounting
+ * it between stages would drop keyboard focus and kill the Enter/Space path for
+ * the second tap.
+ */
+function KickPanel({ stage, spelledRight, word, setup, onTap }: KickPanelProps) {
+  const coaching =
+    stage === "aim"
+      ? setup.hard
+        ? "Hard kick: tiny target, fast sweep. Stop the line in the zone."
+        : setup.bonusLevel > 0
+          ? `Streak bonus ×${setup.bonusLevel}: bigger target, slower sweep.`
+          : "Stop the line inside the zone."
+      : "Now the power — over the keeper, under the bar!";
 
   return (
     <div className="aim-panel">
+      {/* The word stays on screen through both gates. On a miss that is the one
+          place extra kick ceremony genuinely helps the spelling. */}
       <p className={spelledRight ? "verdict right" : "verdict wrong"}>
-        {spelledRight ? (
-          "✓ Spelled it right!"
-        ) : (
-          <>
-            ✗ Not quite — it's <strong>{word}</strong>
-          </>
-        )}
+        {spelledRight ? "✓ Spelled it right!" : <>✗ Not quite — it's <strong>{word}</strong></>}
       </p>
       <p className={setup.hard ? "coaching hard" : "coaching"}>{coaching}</p>
       <button
-        className="btn btn-lg btn-accent kick-btn"
-        onPointerDown={onKick}
+        className={`btn btn-lg btn-accent kick-btn ${stage}`}
+        onPointerDown={onTap}
         onKeyDown={(e) => {
           if (e.key === "Enter" || e.key === " ") {
             e.preventDefault();
-            onKick();
+            onTap();
           }
         }}
       >
-        KICK!
+        {stage === "aim" ? "AIM" : "KICK!"}
       </button>
     </div>
   );
 }
 
 interface ResultProps {
-  scored: boolean;
+  resolved: Resolved;
   spelledRight: boolean;
-  hard: boolean;
+  streak: number;
   typed: string;
   word: string;
   hint?: string;
@@ -387,36 +465,36 @@ interface ResultProps {
 }
 
 function ResultPanel({
-  scored,
-  spelledRight,
-  hard,
-  typed,
-  word,
-  hint,
-  onNext,
-  isLast,
+  resolved, spelledRight, streak, typed, word, hint, onNext, isLast,
 }: ResultProps) {
+  const copy = kickCopy(resolved.outcome, resolved.aimOk);
+  // Showing the consequence BEFORE the next kick is what links spelling to the
+  // reward; felt afterwards, a kid doesn't connect the two.
+  const preview = spelledRight
+    ? `Streak ×${streak} — your next target gets bigger.`
+    : "Streak reset. Next kick is a hard one — spell it right to get your target back.";
+
   return (
     <div className="result-panel">
-      <h2 className={scored ? "result-title goal" : "result-title save"}>
-        {scored ? (hard ? "Top bins!" : "GOAL!") : "Saved!"}
-      </h2>
-
       {spelledRight ? (
         <>
+          <h2 className={resolved.scored ? "result-title goal" : "result-title save"}>
+            {copy.title}
+          </h2>
           <p className="verdict right">✓ Spelled it right</p>
           <p className="result-word">{word}</p>
-          {!scored && <p className="muted">Great spelling — the keeper just guessed right.</p>}
+          <p className="muted cause-line">{copy.cause}</p>
         </>
       ) : (
+        /* On a misspelling the word comes first and the kick is demoted: with
+           six kick outcomes, leading with the kick teaches the wrong thing. */
         <>
           <p className="muted">You spelled</p>
           <p className="result-typed">{typed || "—"}</p>
           <p className="muted">The word is</p>
           <p className="result-word reveal">
             {word.split("").map((letter, i) => {
-              const kidLetter = typed[i]?.toLowerCase();
-              const wrong = kidLetter !== letter.toLowerCase();
+              const wrong = typed[i]?.toLowerCase() !== letter.toLowerCase();
               return (
                 <span
                   key={i}
@@ -429,9 +507,13 @@ function ResultPanel({
             })}
           </p>
           {hint && <p className="hint-note">💡 {hint}</p>}
-          <p className="muted">Spell it right next time for an easier kick.</p>
+          <p className={`kick-subline ${resolved.scored ? "goal" : ""}`}>
+            {copy.title} — {copy.cause}
+          </p>
         </>
       )}
+
+      <p className="streak-preview">{preview}</p>
 
       <button className="btn btn-lg" onClick={onNext}>
         {isLast ? "See results" : "Next kick →"}
