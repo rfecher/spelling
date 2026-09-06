@@ -7,8 +7,13 @@
       "weeks": [
         {
           "id": "2025-W36",
-          "label": "Week 1 \u2014 Sep 1",
+          "label": "Week 1 — Sep 1",
           "file": "richie/2025-W36.json"
+        },
+        {
+          "id": "2025-W37",
+          "label": "Week 2 — Sep 8",
+          "file": "richie/2025-W37.json"
         }
       ],
       "kickEase": 1.0
@@ -20,8 +25,13 @@
       "weeks": [
         {
           "id": "2025-W36",
-          "label": "Week 1 \u2014 Sep 1",
+          "label": "Week 1 — Sep 1",
           "file": "allison/2025-W36.json"
+        },
+        {
+          "id": "2025-W37",
+          "label": "Week 2 — Sep 8",
+          "file": "allison/2025-W37.json"
         }
       ],
       "kickEase": 1.2

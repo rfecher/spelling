@@ -4,7 +4,8 @@ import { useWordList } from "../hooks/useWordList";
 import { VantorHeader } from "../components/VantorHeader";
 import { WeekPicker } from "../components/WeekPicker";
 import { TrophyCabinet } from "../components/TrophyCabinet";
-import { accuracy, masteredCount } from "../lib/progress";
+import { accuracy, isMastered, masteredCount } from "../lib/progress";
+import { CATEGORIES, CATEGORY_META, groupByCategory, masteredIn } from "../lib/categories";
 import "./KidHome.css";
 
 const MODES = [
@@ -66,6 +67,26 @@ export function KidHome() {
           <div className="progress-track">
             <div className="progress-fill" style={{ width: `${pct}%` }} />
           </div>
+          {list && (
+            <div className="cat-row" aria-label="Mastery by word category">
+              {CATEGORIES.map((c) => {
+                const m = masteredIn(stats, list.words, c);
+                if (m.total === 0) return null;
+                return (
+                  <span
+                    key={c}
+                    className={`cat-chip ${m.mastered === m.total ? "done" : ""}`}
+                    title={CATEGORY_META[c].blurb}
+                  >
+                    {CATEGORY_META[c].icon} {CATEGORY_META[c].label}s{" "}
+                    <strong>
+                      {m.mastered}/{m.total}
+                    </strong>
+                  </span>
+                );
+              })}
+            </div>
+          )}
           <div className="stat-row">
             <div className="stat">
               <span className="stat-value">{stats.totals.goalsScored}</span>
@@ -120,11 +141,29 @@ export function KidHome() {
         {list && (
           <details className="word-preview">
             <summary>See all {total} words</summary>
-            <ul>
-              {list.words.map((w) => (
-                <li key={w.word}>{w.word}</li>
-              ))}
-            </ul>
+            <div className="word-groups">
+              {CATEGORIES.map((c) => {
+                const words = groupByCategory(list.words)[c];
+                if (words.length === 0) return null;
+                return (
+                  <div key={c} className="word-group">
+                    <h3>
+                      {CATEGORY_META[c].icon} {CATEGORY_META[c].label}s · {words.length}
+                    </h3>
+                    <ul>
+                      {words.map((w) => (
+                        <li
+                          key={w.word}
+                          className={`${isMastered(stats, w.word) ? "mastered" : ""} ${c}`}
+                        >
+                          {w.word}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                );
+              })}
+            </div>
           </details>
         )}
       </main>

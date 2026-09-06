@@ -1,9 +1,17 @@
 export type KidId = string;
 
+/**
+ * How the school labels the word. Most are regular; a few are review words
+ * from earlier weeks, and a few are challenge (extra-credit) words. Missing
+ * means regular, so older week files need no change.
+ */
+export type WordCategory = "regular" | "review" | "challenge";
+
 export interface WordEntry {
   word: string;
   sentence?: string;
   hint?: string;
+  category?: WordCategory;
 }
 
 export interface WeekRef {

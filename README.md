@@ -32,12 +32,16 @@ You can do all of this from github.com in a browser — no laptop required.
       "sentence": "It is necessary to wear shin guards during the game.",
       "hint": "one c, two s's"
     },
-    { "word": "athlete" }
+    { "word": "athlete" },
+    { "word": "flight", "category": "review" },
+    { "word": "compose", "category": "challenge", "hint": "Ends in -ose." }
   ]
 }
 ```
 
 - `word` — required. Everything else is optional.
+- `category` — `"regular"` (default), `"review"`, or `"challenge"`, matching how
+  the school labels the list. See "Word categories" below for what each does.
 - `sentence` — spoken aloud after the word, so homophones are unambiguous.
   Soccer-themed sentences make it more fun. In Practice mode the word is blanked
   out of the sentence so it isn't a giveaway.
@@ -130,6 +134,26 @@ time window of each gate. Allison ships at `1.2`, so she gets 20% longer on each
 tap (34% on a hard kick rising to 95%). Prefer this over softening the hard kick
 for everyone — the gap between the hard kick and a streak is the whole incentive.
 
+### Word categories
+
+The school gives three kinds of words each week — about 20 regular words, 4
+review words from earlier weeks, and 4 challenge (extra-credit) words — and the
+games treat them the way the test does:
+
+| Category | Badge | In the shootout |
+| --- | --- | --- |
+| Regular | none | Normal rules: +1 streak when right, streak resets when wrong. |
+| Review | ↺ Review word | Same as regular — these should already be known. |
+| Challenge | ⭐ Challenge word | Extra credit: a correct one is a **double** streak step (much bigger next target). A missed one still gets the hard kick but does **not** break the streak. |
+
+The badge shows before the word is spoken, so the kid knows what's coming just
+like on the test. Rounds are stratified — mostly regular words, with review and
+challenge words guaranteed a seat — and the challenge words come **last**, as
+extra time. The home screen shows mastery per category, and Practice mode has a
+filter to drill one category (say, just the challenge words the night before).
+
+Trophy: **Giant Killer** for mastering every challenge word in a week.
+
 ### How words are chosen
 
 Words the kid struggles with come around more often. Each word gets a weight:
@@ -148,7 +172,8 @@ Trophies: First Goal, Hat Trick, On Fire (5 streak), Unstoppable (10 streak),
 Clean Sheet (every word in a round spelled right), Sharpshooter (5 goals in a
 round), Golden Boot (score on every kick in a round), Top Bins (an upper 90 on a
 hard kick — the rarest), Comeback Kid (spell every bonus-kick word right),
-League Champion (master every word in the week), Century Club (100 words right).
+Giant Killer (master every challenge word in the week), League Champion (master
+every word in the week), Century Club (100 words right).
 
 ---
 

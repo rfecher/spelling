@@ -1,0 +1,37 @@
+{
+  "kid": "richie",
+  "week": "2025-W37",
+  "label": "Week 2 — Sep 8",
+  "words": [
+    { "word": "block", "category": "regular", "sentence": "The defender stepped up to block the shot." },
+    { "word": "shown", "category": "regular", "sentence": "The coach has shown us how to take a corner kick.", "hint": "Past tense of show — ends in -own." },
+    { "word": "oatmeal", "category": "regular", "sentence": "Richie eats oatmeal before every early game.", "hint": "Two words stuck together: oat and meal." },
+    { "word": "wrote", "category": "regular", "sentence": "The captain wrote the lineup on the whiteboard.", "hint": "Silent w at the start." },
+    { "word": "fellow", "category": "regular", "sentence": "He high-fived his fellow teammates after the win.", "hint": "Double l, ends in -ow." },
+    { "word": "scold", "category": "regular", "sentence": "The referee did not scold anyone, but he warned both teams." },
+    { "word": "coast", "category": "regular", "sentence": "The tournament was at a field near the coast." },
+    { "word": "odd", "category": "regular", "sentence": "It was odd to see the keeper score a goal.", "hint": "Double d." },
+    { "word": "locate", "category": "regular", "sentence": "Try to locate the open player before you pass." },
+    { "word": "slope", "category": "regular", "sentence": "The ball rolled down the slope behind the goal." },
+    { "word": "throat", "category": "regular", "sentence": "After cheering all game, his throat was sore.", "hint": "oa in the middle, like boat." },
+    { "word": "host", "category": "regular", "sentence": "Our club will host the next tournament." },
+    { "word": "online", "category": "regular", "sentence": "The game schedule is posted online." },
+    { "word": "shock", "category": "regular", "sentence": "It was a shock when the underdogs scored first." },
+    { "word": "solve", "category": "regular", "sentence": "The coach had to solve the problem of the missing goalie." },
+    { "word": "known", "category": "regular", "sentence": "That striker is known for his powerful left foot.", "hint": "Silent k, ends in -own." },
+    { "word": "remote", "category": "regular", "sentence": "The away game was at a remote field in the hills." },
+    { "word": "stock", "category": "regular", "sentence": "The team store has plenty of jerseys in stock." },
+    { "word": "boast", "category": "regular", "sentence": "Don't boast after a win — shake hands instead." },
+    { "word": "throne", "category": "regular", "sentence": "The champions sat on the throne of the league table.", "hint": "The king's chair — t-h-r-o-n-e, not thrown." },
+
+    { "word": "crime", "category": "review", "sentence": "Missing that open goal was a crime!" },
+    { "word": "flight", "category": "review", "sentence": "The team took a flight to the national tournament.", "hint": "The igh spelling, like light and night." },
+    { "word": "witness", "category": "review", "sentence": "Everyone in the stands was a witness to that amazing goal.", "hint": "Ends with a double s." },
+    { "word": "build", "category": "review", "sentence": "Good passing helps build an attack.", "hint": "Silent u — b-u-i-l-d." },
+
+    { "word": "borrow", "category": "challenge", "sentence": "Can I borrow your shin guards for the game?", "hint": "Double r, ends in -ow." },
+    { "word": "compose", "category": "challenge", "sentence": "Take a breath and compose yourself before the penalty." },
+    { "word": "rocket", "category": "challenge", "sentence": "He launched a rocket of a shot into the top corner.", "hint": "Ends in -et, not -it." },
+    { "word": "doctor", "category": "challenge", "sentence": "The team doctor checked the player's ankle.", "hint": "Ends in -or, not -er." }
+  ]
+}

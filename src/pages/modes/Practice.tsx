@@ -5,9 +5,11 @@ import { useTTS } from "../../hooks/useTTS";
 import { TTSButton } from "../../components/TTSButton";
 import { OnScreenKeyboard } from "../../components/OnScreenKeyboard";
 import { ModeShell } from "../../components/ModeShell";
+import { CategoryBadge } from "../../components/CategoryBadge";
+import { CATEGORIES, CATEGORY_META, categoryOf } from "../../lib/categories";
 import { pickWords } from "../../lib/weighting";
 import { isCorrect } from "../../lib/progress";
-import type { WordEntry } from "../../types";
+import type { WordCategory, WordEntry } from "../../types";
 import "./modes.css";
 
 type Stage = "study" | "type" | "checked";
@@ -31,22 +33,27 @@ export function Practice() {
   const [typed, setTyped] = useState("");
   const [peeking, setPeeking] = useState(false);
   const [wasRight, setWasRight] = useState(false);
+  // Study one category at a time before a test, or everything.
+  const [filter, setFilter] = useState<WordCategory | "all">("all");
 
   const startRound = useCallback(() => {
     if (!list) return;
-    setQueue(pickWords(list.words, progress.progress, list.words.length));
+    const pool =
+      filter === "all" ? list.words : list.words.filter((w) => categoryOf(w) === filter);
+    setQueue(pickWords(pool, progress.progress, pool.length));
     setIndex(0);
     setStage("study");
     setTyped("");
     setPeeking(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [list]);
+  }, [list, filter]);
 
   useEffect(() => {
     startRound();
   }, [startRound]);
 
   const current = queue[index];
+  const present = CATEGORIES.filter((c) => list?.words.some((w) => categoryOf(w) === c));
 
   const check = () => {
     if (!current) return;
@@ -76,9 +83,33 @@ export function Practice() {
         current ? `Card ${index + 1} of ${queue.length} · no score kept` : undefined
       }
     >
+      {list && present.length > 1 && (
+        <div className="cat-filter" role="tablist" aria-label="Word category">
+          <button
+            role="tab"
+            className={filter === "all" ? "active" : ""}
+            onClick={() => setFilter("all")}
+          >
+            All {list.words.length}
+          </button>
+          {present.map((c) => (
+            <button
+              key={c}
+              role="tab"
+              className={filter === c ? "active" : ""}
+              onClick={() => setFilter(c)}
+            >
+              {CATEGORY_META[c].icon} {CATEGORY_META[c].label}s{" "}
+              {list.words.filter((w) => categoryOf(w) === c).length}
+            </button>
+          ))}
+        </div>
+      )}
+
       {current && (
         <>
           <div className="card flashcard">
+            <CategoryBadge entry={current} />
             {stage === "study" || peeking || stage === "checked" ? (
               <span className="flashcard-word">{current.word}</span>
             ) : (

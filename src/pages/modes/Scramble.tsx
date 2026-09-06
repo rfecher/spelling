@@ -6,6 +6,7 @@ import { VantorHeader } from "../../components/VantorHeader";
 import { TTSButton } from "../../components/TTSButton";
 import { RoundSummary } from "../../components/RoundSummary";
 import { ModeShell } from "../../components/ModeShell";
+import { CategoryBadge } from "../../components/CategoryBadge";
 import { pickWords } from "../../lib/weighting";
 import { scrambleTiles, type Tile } from "../../lib/shuffle";
 import type { WordEntry } from "../../types";
@@ -125,6 +126,7 @@ export function Scramble() {
       {current && (
         <>
           <div className="prompt-area">
+            <CategoryBadge entry={current} />
             <TTSButton
               onSpeak={() => tts.sayWord(current, { withSentence: false })}
               speaking={tts.speaking}

@@ -17,6 +17,7 @@ export const TROPHIES: Trophy[] = [
   { id: "golden-boot", name: "Golden Boot", blurb: "Score on every kick in a round", icon: "🥇" },
   { id: "top-bins", name: "Top Bins", blurb: "Upper 90 on a hard kick", icon: "🎪" },
   { id: "comeback", name: "Comeback Kid", blurb: "Spell every bonus-kick word right", icon: "💪" },
+  { id: "giant-killer", name: "Giant Killer", blurb: "Master every challenge word this week", icon: "🦁" },
   { id: "week-mastered", name: "League Champion", blurb: "Master every word this week", icon: "🏆" },
   { id: "century", name: "Century Club", blurb: "Spell 100 words right", icon: "💯" },
 ];

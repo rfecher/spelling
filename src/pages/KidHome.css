@@ -231,3 +231,38 @@
   color: var(--wrong-mark);
   font-weight: 600;
 }
+
+/* ---- Word categories ---- */
+
+.stat-row { grid-template-columns: repeat(4, 1fr); }
+
+.cat-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.cat-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface-raised);
+  font-size: 13px;
+}
+
+.cat-chip strong { font-family: var(--font-heading); }
+.cat-chip.done { border-color: var(--goal-flash); }
+
+.word-groups { display: flex; flex-direction: column; gap: 14px; padding-top: 6px; }
+.word-group h3 {
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  margin: 0 0 8px;
+}
+.word-preview li.mastered { border-color: var(--goal-flash); }
+.word-preview li.challenge { border-color: var(--accent); }

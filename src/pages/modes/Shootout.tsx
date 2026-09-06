@@ -8,9 +8,11 @@ import { TTSButton } from "../../components/TTSButton";
 import { OnScreenKeyboard } from "../../components/OnScreenKeyboard";
 import { GoalAnimation, type SceneState } from "../../components/GoalAnimation";
 import { Scoreboard } from "../../components/Scoreboard";
+import { CategoryBadge } from "../../components/CategoryBadge";
 import { RoundSummary } from "../../components/RoundSummary";
 import { pickWords } from "../../lib/weighting";
 import { isCorrect, weekMastered } from "../../lib/progress";
+import { categoryOf, challengeMastered, nextStreak } from "../../lib/categories";
 import {
   flashLine,
   inZone,
@@ -20,7 +22,7 @@ import {
   type KickOutcome,
   type KickSetup,
 } from "../../lib/kick";
-import type { WordEntry } from "../../types";
+import type { WordCategory, WordEntry } from "../../types";
 import "./modes.css";
 
 const ROUND_SIZE = 10;
@@ -168,11 +170,13 @@ export function Shootout() {
     if (!current || typed.length === 0) return;
     tts.stop();
     const correct = isCorrect(typed, current.word);
-    const nextStreak = correct ? streak + 1 : 0;
+    // Challenge words are extra credit: double step when right, streak kept
+    // when wrong (the kick is still hard). Regular and review words are plain.
+    const streakAfter = nextStreak(streak, correct, categoryOf(current));
 
     addTrophies(progress.recordAttempt(current.word, correct, "shootout"));
     setSpelledRight(correct);
-    setStreak(nextStreak);
+    setStreak(streakAfter);
     if (correct) {
       setSpelled((n) => n + 1);
     } else {
@@ -186,7 +190,7 @@ export function Shootout() {
     const calm = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches
       ? CALM_EASE
       : 1;
-    setSetup(kickSetup(correct, nextStreak, ease * calm));
+    setSetup(kickSetup(correct, streakAfter, ease * calm));
     setKickX(null);
     setKickPower(null);
     setResolved(null);
@@ -252,6 +256,9 @@ export function Shootout() {
     progress.completeRound();
     if (misspelled === 0 && spelled > 0) addTrophies(progress.award("perfect-round"));
     if (inRetries && retryMisses === 0) addTrophies(progress.award("comeback"));
+    if (list && challengeMastered(progress.progress, list.words)) {
+      addTrophies(progress.award("giant-killer"));
+    }
     if (list && weekMastered(progress.progress, list.words)) {
       addTrophies(progress.award("week-mastered"));
     }
@@ -341,6 +348,7 @@ export function Shootout() {
           <KickPanel
             stage={phase}
             spelledRight={spelledRight}
+            category={categoryOf(current)}
             word={current.word}
             setup={setup}
             onTap={tap}
@@ -351,6 +359,7 @@ export function Shootout() {
           <ResultPanel
             resolved={resolved}
             spelledRight={spelledRight}
+            category={categoryOf(current)}
             streak={streak}
             typed={typed}
             word={current.word}
@@ -363,6 +372,7 @@ export function Shootout() {
         {(phase === "kickoff" || phase === "typing") && (
           <>
             <div className="prompt-area">
+              <CategoryBadge entry={current} />
               <TTSButton
                 onSpeak={hearWord}
                 speaking={tts.speaking}
@@ -409,6 +419,7 @@ export function Shootout() {
 interface KickPanelProps {
   stage: "aim" | "power";
   spelledRight: boolean;
+  category: WordCategory;
   word: string;
   setup: KickSetup;
   onTap: () => void;
@@ -419,7 +430,7 @@ interface KickPanelProps {
  * it between stages would drop keyboard focus and kill the Enter/Space path for
  * the second tap.
  */
-function KickPanel({ stage, spelledRight, word, setup, onTap }: KickPanelProps) {
+function KickPanel({ stage, spelledRight, category, word, setup, onTap }: KickPanelProps) {
   const coaching =
     stage === "aim"
       ? setup.hard
@@ -433,9 +444,13 @@ function KickPanel({ stage, spelledRight, word, setup, onTap }: KickPanelProps) 
     <div className="aim-panel">
       {/* The word stays on screen through both gates. On a miss that is the one
           place extra kick ceremony genuinely helps the spelling. */}
+      <CategoryBadge category={category} size="sm" />
       <p className={spelledRight ? "verdict right" : "verdict wrong"}>
         {spelledRight ? "✓ Spelled it right!" : <>✗ Not quite — it's <strong>{word}</strong></>}
       </p>
+      {category === "challenge" && spelledRight && (
+        <p className="challenge-note">⭐ Challenge bonus: double streak step!</p>
+      )}
       <p className={setup.hard ? "coaching hard" : "coaching"}>{coaching}</p>
       <button
         className={`btn btn-lg btn-accent kick-btn ${stage}`}
@@ -456,6 +471,7 @@ function KickPanel({ stage, spelledRight, word, setup, onTap }: KickPanelProps) 
 interface ResultProps {
   resolved: Resolved;
   spelledRight: boolean;
+  category: WordCategory;
   streak: number;
   typed: string;
   word: string;
@@ -465,14 +481,22 @@ interface ResultProps {
 }
 
 function ResultPanel({
-  resolved, spelledRight, streak, typed, word, hint, onNext, isLast,
+  resolved, spelledRight, category, streak, typed, word, hint, onNext, isLast,
 }: ResultProps) {
   const copy = kickCopy(resolved.outcome, resolved.aimOk);
   // Showing the consequence BEFORE the next kick is what links spelling to the
   // reward; felt afterwards, a kid doesn't connect the two.
-  const preview = spelledRight
-    ? `Streak ×${streak} — your next target gets bigger.`
-    : "Streak reset. Next kick is a hard one — spell it right to get your target back.";
+  let preview: string;
+  if (spelledRight) {
+    preview =
+      category === "challenge"
+        ? `Challenge bonus! Streak ×${streak} — your next target gets much bigger.`
+        : `Streak ×${streak} — your next target gets bigger.`;
+  } else if (category === "challenge") {
+    preview = `Challenge word — your streak (×${streak}) is safe. It comes back for a bonus kick.`;
+  } else {
+    preview = "Streak reset. Next kick is a hard one — spell it right to get your target back.";
+  }
 
   return (
     <div className="result-panel">

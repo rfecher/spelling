@@ -6,6 +6,7 @@ import { VantorHeader } from "../../components/VantorHeader";
 import { TTSButton } from "../../components/TTSButton";
 import { RoundSummary } from "../../components/RoundSummary";
 import { ModeShell } from "../../components/ModeShell";
+import { CategoryBadge } from "../../components/CategoryBadge";
 import { pickWords } from "../../lib/weighting";
 import { shuffle, sample } from "../../lib/shuffle";
 import type { WordEntry } from "../../types";
@@ -171,6 +172,7 @@ export function MissingLetters() {
       {puzzle && (
         <>
           <div className="prompt-area">
+            <CategoryBadge entry={puzzle.entry} />
             <TTSButton
               onSpeak={() => tts.sayWord(puzzle.entry)}
               speaking={tts.speaking}
