@@ -3,34 +3,164 @@
   "week": "2025-W37",
   "label": "Week 2 — Sep 8",
   "words": [
-    { "word": "west", "category": "regular", "sentence": "The sun sets in the west behind the far goal." },
-    { "word": "steep", "category": "regular", "sentence": "The hill next to the field is very steep.", "hint": "Double e in the middle." },
-    { "word": "member", "category": "regular", "sentence": "Allison is a member of the Virginia Revolution." },
-    { "word": "gleam", "category": "regular", "sentence": "The trophy had a golden gleam in the sunlight.", "hint": "ea, like team." },
-    { "word": "fresh", "category": "regular", "sentence": "The fresh cut grass smelled great on game day." },
-    { "word": "kept", "category": "regular", "sentence": "The keeper kept every shot out of the net." },
-    { "word": "speed", "category": "regular", "sentence": "Her speed on the wing is hard to stop.", "hint": "Double e." },
-    { "word": "pretend", "category": "regular", "sentence": "Pretend the cone is a defender and dribble around it." },
-    { "word": "beast", "category": "regular", "sentence": "Their striker is a beast in the air.", "hint": "ea, like east." },
-    { "word": "cheap", "category": "regular", "sentence": "The snack bar sells cheap orange slices.", "hint": "ea, like eat." },
-    { "word": "chief", "category": "regular", "sentence": "The chief goal this season is to have fun.", "hint": "i before e — c-h-i-e-f." },
-    { "word": "eager", "category": "regular", "sentence": "The team was eager to start the second half.", "hint": "Starts with ea." },
-    { "word": "believe", "category": "regular", "sentence": "I believe we can win this game.", "hint": "i before e, and a silent e at the end." },
-    { "word": "steam", "category": "regular", "sentence": "Steam rose from the hot cocoa after the cold game.", "hint": "ea, like team." },
-    { "word": "shelf", "category": "regular", "sentence": "The trophies sit on a shelf in the clubhouse." },
-    { "word": "least", "category": "regular", "sentence": "Our team gave up the least goals in the league.", "hint": "ea, like east." },
-    { "word": "freedom", "category": "regular", "sentence": "The winger has the freedom to roam up the sideline.", "hint": "Double e, then -dom." },
-    { "word": "reason", "category": "regular", "sentence": "The reason we won was great teamwork.", "hint": "ea in the middle." },
-    { "word": "speck", "category": "regular", "sentence": "There was a speck of mud on her new cleats.", "hint": "Ends with -ck." },
-
-    { "word": "quake", "category": "review", "sentence": "The stands seemed to quake when the crowd jumped." },
-    { "word": "crayon", "category": "review", "sentence": "She drew the team logo with a purple crayon." },
-    { "word": "drain", "category": "review", "sentence": "The rain had to drain off the field before kickoff.", "hint": "ai, like rain." },
-    { "word": "maybe", "category": "review", "sentence": "Maybe we will play on the big field next week.", "hint": "One word — may and be." },
-
-    { "word": "complete", "category": "challenge", "sentence": "Complete the pass before the defender gets there.", "hint": "Ends with -ete, silent e." },
-    { "word": "sleeve", "category": "challenge", "sentence": "She wiped her face with the sleeve of her jersey.", "hint": "Double e, then a silent e." },
-    { "word": "engine", "category": "challenge", "sentence": "The midfielder is the engine of the team.", "hint": "Ends in -ine but sounds like -in." },
-    { "word": "defend", "category": "challenge", "sentence": "Everyone has to defend when we lose the ball." }
+    {
+      "word": "west",
+      "category": "regular",
+      "sentence": "The sun sets in the west behind the far goal."
+    },
+    {
+      "word": "steep",
+      "category": "regular",
+      "sentence": "The hill next to the field is very steep.",
+      "hint": "Double e in the middle."
+    },
+    {
+      "word": "member",
+      "category": "regular",
+      "sentence": "Allison is a member of the Virginia Revolution."
+    },
+    {
+      "word": "gleam",
+      "category": "regular",
+      "sentence": "The trophy had a golden gleam in the sunlight.",
+      "hint": "ea, like team."
+    },
+    {
+      "word": "fresh",
+      "category": "regular",
+      "sentence": "The fresh cut grass smelled great on game day."
+    },
+    {
+      "word": "kept",
+      "category": "regular",
+      "sentence": "The keeper kept every shot out of the net."
+    },
+    {
+      "word": "speed",
+      "category": "regular",
+      "sentence": "Her speed on the wing is hard to stop.",
+      "hint": "Double e."
+    },
+    {
+      "word": "pretend",
+      "category": "regular",
+      "sentence": "Pretend the cone is a defender and dribble around it."
+    },
+    {
+      "word": "beast",
+      "category": "regular",
+      "sentence": "Their striker is a beast in the air.",
+      "hint": "ea, like east."
+    },
+    {
+      "word": "cheap",
+      "category": "regular",
+      "sentence": "The snack bar sells cheap orange slices.",
+      "hint": "ea, like eat."
+    },
+    {
+      "word": "chief",
+      "category": "regular",
+      "sentence": "The chief goal this season is to have fun.",
+      "hint": "i before e — c-h-i-e-f."
+    },
+    {
+      "word": "eager",
+      "category": "regular",
+      "sentence": "The team was eager to start the second half.",
+      "hint": "Starts with ea."
+    },
+    {
+      "word": "believe",
+      "category": "regular",
+      "sentence": "I believe we can win this game.",
+      "hint": "i before e, and a silent e at the end."
+    },
+    {
+      "word": "steam",
+      "category": "regular",
+      "sentence": "Steam rose from the hot cocoa after the cold game.",
+      "hint": "ea, like team."
+    },
+    {
+      "word": "shelf",
+      "category": "regular",
+      "sentence": "The trophies sit on a shelf in the clubhouse."
+    },
+    {
+      "word": "least",
+      "category": "regular",
+      "sentence": "Our team gave up the least goals in the league.",
+      "hint": "ea, like east."
+    },
+    {
+      "word": "freedom",
+      "category": "regular",
+      "sentence": "The winger has the freedom to roam up the sideline.",
+      "hint": "Double e, then -dom."
+    },
+    {
+      "word": "reason",
+      "category": "regular",
+      "sentence": "The reason we won was great teamwork.",
+      "hint": "ea in the middle."
+    },
+    {
+      "word": "speck",
+      "category": "regular",
+      "sentence": "There was a speck of mud on her new cleats.",
+      "hint": "Ends with -ck."
+    },
+    {
+      "word": "greed",
+      "category": "regular",
+      "sentence": "Passing to an open teammate beats greed in front of the goal.",
+      "hint": "Double e, like speed and steep."
+    },
+    {
+      "word": "quake",
+      "category": "review",
+      "sentence": "The stands seemed to quake when the crowd jumped."
+    },
+    {
+      "word": "crayon",
+      "category": "review",
+      "sentence": "She drew the team logo with a purple crayon."
+    },
+    {
+      "word": "drain",
+      "category": "review",
+      "sentence": "The rain had to drain off the field before kickoff.",
+      "hint": "ai, like rain."
+    },
+    {
+      "word": "maybe",
+      "category": "review",
+      "sentence": "Maybe we will play on the big field next week.",
+      "hint": "One word — may and be."
+    },
+    {
+      "word": "complete",
+      "category": "challenge",
+      "sentence": "Complete the pass before the defender gets there.",
+      "hint": "Ends with -ete, silent e."
+    },
+    {
+      "word": "sleeve",
+      "category": "challenge",
+      "sentence": "She wiped her face with the sleeve of her jersey.",
+      "hint": "Double e, then a silent e."
+    },
+    {
+      "word": "engine",
+      "category": "challenge",
+      "sentence": "The midfielder is the engine of the team.",
+      "hint": "Ends in -ine but sounds like -in."
+    },
+    {
+      "word": "defend",
+      "category": "challenge",
+      "sentence": "Everyone has to defend when we lose the ball."
+    }
   ]
 }
